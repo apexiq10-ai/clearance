@@ -20,6 +20,9 @@ export default function Page() {
   const [phase, setPhase] = useState<Phase>("question");
   const [institutionId, setInstitutionId] = useState<SegmentId | null>(null);
   const [filing, setFiling] = useState("");
+  // The excerpt carried into the build. The draft above is cleared on the way
+  // through, so returning to screen one never shows stale text.
+  const [appliedFiling, setAppliedFiling] = useState("");
   const [economics, setEconomics] = useState<EconomicsConstants>(ECONOMICS);
   const [traceVisible, setTraceVisible] = useState(0);
   const [landedRows, setLandedRows] = useState(0);
@@ -84,6 +87,8 @@ export default function Page() {
 
   function pick(id: SegmentId) {
     setInstitutionId(id);
+    setAppliedFiling(filing.trim());
+    setFiling("");
     setTraceVisible(0);
     setLandedRows(0);
     setTotalsLanded(false);
@@ -93,6 +98,8 @@ export default function Page() {
   function startOver() {
     setPhase("question");
     setInstitutionId(null);
+    setFiling("");
+    setAppliedFiling("");
     setTraceVisible(0);
     setLandedRows(0);
     setTotalsLanded(false);
