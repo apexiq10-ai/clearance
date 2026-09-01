@@ -45,11 +45,32 @@ export type DriverKey = (typeof DRIVER_KEYS)[number];
  * `support` is what in the text carries it. The UI renders that as the
  * provenance note, so a reader can find the sentence the number came from.
  */
+/**
+ * The driver key is a plain string here, not the enum.
+ *
+ * Constraint 3 says an unrecognised id is dropped silently, not treated as an
+ * error. Validating the key as an enum made one invented driver name invalidate
+ * the entire response, rows included, and cost a full second pass. Unknown keys
+ * are filtered in pruneExtractedDrivers instead.
+ */
 export const extractedDriverSchema = z.object({
-  driver: z.enum(DRIVER_KEYS),
+  driver: z.string().min(1),
   value: z.number().finite().nonnegative(),
   support: z.string().min(1).max(400),
 });
+
+const DRIVER_KEY_SET = new Set<string>(DRIVER_KEYS);
+
+/** Keep only drivers the corpus recognises. Returns the survivors and the rest. */
+export function pruneExtractedDrivers(drivers: ExtractedDriver[] | undefined) {
+  const kept: ExtractedDriver[] = [];
+  const dropped: string[] = [];
+  for (const d of drivers ?? []) {
+    if (DRIVER_KEY_SET.has(d.driver)) kept.push(d);
+    else dropped.push(d.driver);
+  }
+  return { kept, dropped };
+}
 
 export const ledgerRowSchema = z.object({
   workloadId: z.string(),

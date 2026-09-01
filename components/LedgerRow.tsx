@@ -53,18 +53,34 @@ export function LedgerRow({
 
   return (
     <div className="bg-paper">
-      <button
-        type="button"
+      {/*
+        The whole row is clickable, but the accessible control is the workload
+        name button alone. The row carries provenance triggers, which are
+        buttons, so the container must not be a button and must not carry
+        role="button" either: a button inside a button is invalid HTML, and a
+        button inside role="button" nests interactive semantics for a screen
+        reader. The container is a plain div with a click handler for the
+        mouse, and the name button is the keyboard target.
+      */}
+      <div
         onClick={onToggle}
-        aria-expanded={expanded}
-        className={`block w-full px-5 py-6 text-left transition-colors sm:px-6 ${
+        className={`block w-full cursor-pointer px-5 py-6 text-left transition-colors sm:px-6 ${
           expanded ? "bg-shade" : "hover:bg-shade"
         }`}
       >
       <div className="flex items-baseline justify-between gap-6">
-        <h3 className="font-sans text-base font-semibold leading-tight text-ink sm:text-lg">
+        <button
+          type="button"
+          onClick={(e) => {
+            // The container also toggles, so stop this from counting twice.
+            e.stopPropagation();
+            onToggle();
+          }}
+          aria-expanded={expanded}
+          className="text-left font-sans text-base font-semibold leading-tight text-ink transition-colors hover:text-violet sm:text-lg"
+        >
           {workload.name}
-        </h3>
+        </button>
         <span className="chip shrink-0">{TIER_LABEL[workload.riskTier]}</span>
       </div>
 
@@ -133,10 +149,9 @@ export function LedgerRow({
           {Math.round(row.annualVolumeLow).toLocaleString("en-US")} contacts a year
         </span>
       </div>
-      </button>
+      </div>
 
-      {/* The volume marker sits outside the button, because a hover block
-          inside a button is a control inside a control. */}
+      {/* The derivation marker sits outside the row header. */}
       <div className="px-5 pb-4 font-mono text-xs leading-tight text-slate sm:px-6">
         <Numeral
           provenance={volumeProvenance(workload, institution, row)}

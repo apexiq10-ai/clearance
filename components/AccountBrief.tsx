@@ -108,14 +108,14 @@ export function AccountBrief({
       <Section title="The sequence">
         {brief ? (
           <ul className="space-y-1.5">
-            {brief.sequence.map((line) => (
-              <li key={line}>{line}</li>
+            {brief.sequence.map((line, index) => (
+              <li key={index}>{line}</li>
             ))}
           </ul>
         ) : deterministic ? (
           <ul className="space-y-1.5">
-            {deterministic.sequenceLines.map((line) => (
-              <li key={line} className="font-mono text-sm">
+            {deterministic.sequenceLines.map((line, index) => (
+              <li key={index} className="font-mono text-sm">
                 {line}
               </li>
             ))}
@@ -137,8 +137,8 @@ export function AccountBrief({
       <Section title="Two questions for the next call">
         {brief ? (
           <ol className="space-y-1.5">
-            {brief.questions.map((q) => (
-              <li key={q}>{q}</li>
+            {brief.questions.map((q, index) => (
+              <li key={index}>{q}</li>
             ))}
           </ol>
         ) : null}

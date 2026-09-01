@@ -19,9 +19,9 @@ export function ReasoningRail({
 }) {
   return (
     <ol className="space-y-2">
-      {lines.slice(0, visible).map((line) => (
+      {lines.slice(0, visible).map((line, index) => (
         <li
-          key={line.label}
+          key={index}
           className="flex items-baseline justify-between gap-4 font-mono text-xs leading-tight"
         >
           <span className="text-slate">{line.label}</span>

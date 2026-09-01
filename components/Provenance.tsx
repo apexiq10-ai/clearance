@@ -49,6 +49,12 @@ export function Provenance({
     <span className="group relative inline-block align-baseline">
       <button
         type="button"
+        onClick={(e) => {
+          // The marker lives inside a row that toggles on click. Opening a
+          // provenance block must not also expand the row.
+          e.stopPropagation();
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
         aria-describedby={id}
         aria-label={`${LABEL[provenance.class]}. ${detail}`}
         className="ml-1 cursor-help font-mono text-xs leading-none text-slate transition-colors hover:text-violet focus-visible:text-violet"

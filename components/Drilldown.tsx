@@ -237,9 +237,9 @@ function Proof({ conversation }: { conversation: ConversationScenario }) {
           The audit record
         </h5>
         <ul className="mt-2 space-y-1">
-          {conversation.outcome.auditRecord.map((entry) => (
+          {conversation.outcome.auditRecord.map((entry, index) => (
             <li
-              key={entry}
+              key={index}
               className="max-w-[65ch] font-mono text-xs leading-relaxed text-slate"
             >
               {entry}

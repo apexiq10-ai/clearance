@@ -156,8 +156,18 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const encoder = new TextEncoder();
-      const send = (event: Parameters<typeof encodeEvent>[0]) =>
-        controller.enqueue(encoder.encode(encodeEvent(event)));
+
+      // One flag governs the controller, assigned only in the finally below,
+      // which is also the only place close() is called.
+      let streamClosed = false;
+      const send = (event: Parameters<typeof encodeEvent>[0]) => {
+        if (streamClosed) return;
+        try {
+          controller.enqueue(encoder.encode(encodeEvent(event)));
+        } catch {
+          // The client hung up mid-write.
+        }
+      };
 
       try {
         const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -174,7 +184,10 @@ export async function POST(request: NextRequest) {
           },
         });
       } finally {
-        controller.close();
+        if (!streamClosed) {
+          streamClosed = true;
+          controller.close();
+        }
       }
     },
   });

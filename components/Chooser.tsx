@@ -22,12 +22,15 @@ export function Chooser({
   onFilingChange,
   onPick,
   onBuildFromFiling,
+  pending = false,
 }: {
   filing: string;
   onFilingChange: (v: string) => void;
   onPick: (id: SegmentId) => void;
   /** Build with no archetype chosen. The model classifies the segment. */
   onBuildFromFiling: () => void;
+  /** True while a ledger request is in flight. Blocks a second one. */
+  pending?: boolean;
 }) {
   const [selectedId, setSelectedId] = useState<SegmentId | null>(null);
   const hasFiling = filing.trim().length > 0;
@@ -96,15 +99,22 @@ export function Chooser({
               <button
                 type="button"
                 onClick={() => (selectedId ? onPick(selectedId) : onBuildFromFiling())}
-                className="flex w-full flex-col gap-1.5 bg-paper px-5 py-5 text-left transition-colors hover:bg-shade sm:flex-row sm:items-baseline sm:justify-between sm:gap-8 sm:px-6"
+                disabled={pending}
+                className="flex w-full flex-col gap-1.5 bg-paper px-5 py-5 text-left transition-colors enabled:hover:bg-shade disabled:cursor-default sm:flex-row sm:items-baseline sm:justify-between sm:gap-8 sm:px-6"
               >
-                <span className="font-sans text-base font-semibold leading-tight text-ink sm:text-lg">
+                <span
+                  className={`font-sans text-base font-semibold leading-tight sm:text-lg ${
+                    pending ? "text-slate" : "text-ink"
+                  }`}
+                >
                   Build the ledger
                 </span>
                 <span className="font-body text-sm leading-relaxed text-slate sm:text-right">
-                  {selected
-                    ? `Applying this excerpt to ${selected.name.toLowerCase()}.`
-                    : "Reading the excerpt to work out which of the four it is."}
+                  {pending
+                    ? "Reading the filing. This usually takes under a minute."
+                    : selected
+                      ? `Applying this excerpt to ${selected.name.toLowerCase()}.`
+                      : "Reading the excerpt to work out which of the four it is."}
                 </span>
               </button>
             </div>

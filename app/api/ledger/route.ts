@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic, { APIUserAbortError } from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
 
 import { CONTROL_GATES } from "../../../corpus/controls";
@@ -8,6 +8,7 @@ import type { InstitutionArchetype, SegmentId } from "../../../corpus/types";
 import { blockingGatesFor } from "../../../lib/defaults";
 import {
   ledgerResponseSchema,
+  pruneExtractedDrivers,
   pruneRows,
   type LedgerResponse,
 } from "../../../lib/schema";
@@ -17,6 +18,18 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MODEL = "claude-sonnet-4-6";
+
+/**
+ * The model request is cancelled server-side at this point, not merely waited
+ * out. The signal goes into the SDK call itself, so an abort tears down the
+ * upstream HTTP request rather than leaving it running while nobody listens.
+ *
+ * Measured, not guessed. A clean single pass on the archetype path completes in
+ * about 26 seconds and the filing path is slower, so a 20 second ceiling
+ * aborted every call and served the corpus fallback every time. This sits
+ * under the 60 second maxDuration with room for the schema retry.
+ */
+const MODEL_TIMEOUT_MS = 45_000;
 
 /**
  * The archetype used when a filing cannot be classified at all. The largest
@@ -148,6 +161,19 @@ function buildUserMessage(
     );
   }
 
+  // The verbatim system prompt describes the fields but never names the top
+  // level key, and the model was returning {institutionId, workloads} instead
+  // of {rows}. That failed validation on the first attempt every time and cost
+  // a second full pass. The shape is stated here rather than in the system
+  // prompt, so the prompt in section 4 stays verbatim.
+  const shape = filing
+    ? `{ "segmentId": string, "segmentConfidence": "high" | "low", "classificationNote": string, "extractedDrivers": [{ "driver": string, "value": number, "support": string }], "rows": [{ "workloadId": string, "permittedPct": number, "ceilingPct": number, "gateIds": string[], "reasoning": string }] }`
+    : `{ "rows": [{ "workloadId": string, "permittedPct": number, "ceilingPct": number, "gateIds": string[], "reasoning": string }] }`;
+
+  parts.push(
+    `The JSON object has exactly this shape. The top level key holding the ledger is "rows". Do not rename it, do not nest it, and do not add keys that are not listed here.\n\n${shape}`
+  );
+
   parts.push(
     filing
       ? "Produce the reasoning trace, then the LEDGER line, then the JSON object."
@@ -203,28 +229,63 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const encoder = new TextEncoder();
-      const send = (event: Parameters<typeof encodeEvent>[0]) =>
-        controller.enqueue(encoder.encode(encodeEvent(event)));
+
+      // One flag governs the controller. Assigned in exactly one place, in the
+      // finally below, which is also the only place close() is called.
+      let streamClosed = false;
+
+      const send = (event: Parameters<typeof encodeEvent>[0]) => {
+        if (streamClosed) return;
+        try {
+          controller.enqueue(encoder.encode(encodeEvent(event)));
+        } catch {
+          // The client hung up mid-write. Nothing to do and nothing to log.
+        }
+      };
+
+      const abort = new AbortController();
+      const timer = setTimeout(() => abort.abort(), MODEL_TIMEOUT_MS);
 
       try {
-        const raw = await runModel(client, system, chosen ?? null, filing, send);
+        const raw = await runModel(
+          client,
+          system,
+          chosen ?? null,
+          filing,
+          send,
+          abort.signal
+        );
         const payload = resolvePayload(raw, chosen ?? null, filing);
         send({ kind: "result", payload });
       } catch (error) {
-        console.error("[ledger] generation failed", error);
+        const timedOut =
+          error instanceof APIUserAbortError || abort.signal.aborted;
+
+        if (timedOut) {
+          console.warn(`[ledger] model call aborted at ${MODEL_TIMEOUT_MS}ms`);
+        } else {
+          console.error("[ledger] generation failed", error);
+        }
+
         // Never leave the user without a ledger.
         const fallbackInstitution = chosen ?? INSTITUTIONS_BY_ID[FALLBACK_SEGMENT]!;
         send({
           kind: "result",
           payload: corpusFallback(
             fallbackInstitution,
-            chosen
-              ? "The model pass did not complete. These are the corpus defaults for this archetype, unadjusted."
-              : "The filing did not classify. This is the regional bank archetype on corpus defaults. Pick an institution above to choose deliberately."
+            timedOut
+              ? "The model pass took too long and was stopped. These are the corpus defaults for this archetype, unadjusted."
+              : chosen
+                ? "The model pass did not complete. These are the corpus defaults for this archetype, unadjusted."
+                : "The filing did not classify. This is the regional bank archetype on corpus defaults. Pick an institution above to choose deliberately."
           ),
         });
       } finally {
-        controller.close();
+        clearTimeout(timer);
+        if (!streamClosed) {
+          streamClosed = true;
+          controller.close();
+        }
       }
     },
   });
@@ -256,7 +317,8 @@ async function runModel(
   system: string,
   institution: InstitutionArchetype | null,
   filing: string,
-  send: (e: Parameters<typeof encodeEvent>[0]) => void
+  send: (e: Parameters<typeof encodeEvent>[0]) => void,
+  signal: AbortSignal
 ): Promise<LedgerResponse> {
   let lastError = "";
 
@@ -272,12 +334,17 @@ async function runModel(
     let sawLedgerMarker = false;
     let json = "";
 
-    const response = client.messages.stream({
-      model: MODEL,
-      max_tokens: 4000,
-      system,
-      messages: [{ role: "user", content: userMessage }],
-    });
+    // The signal is a RequestOptions field on the second parameter, confirmed
+    // against @anthropic-ai/sdk 0.123.0. Cancels the upstream request itself.
+    const response = client.messages.stream(
+      {
+        model: MODEL,
+        max_tokens: 4000,
+        system,
+        messages: [{ role: "user", content: userMessage }],
+      },
+      { signal }
+    );
 
     for await (const event of response) {
       if (
@@ -318,14 +385,20 @@ async function runModel(
     const parsed = safeParseJson(json);
     if (!parsed.ok) {
       lastError = parsed.error;
+      console.warn(
+        `[ledger] attempt ${attempt} JSON parse failed: ${parsed.error}. ` +
+          `marker=${sawLedgerMarker} jsonChars=${json.length} tail=${JSON.stringify(json.slice(-120))}`
+      );
       continue;
     }
 
     const validated = ledgerResponseSchema.safeParse(parsed.value);
     if (!validated.success) {
       lastError = JSON.stringify(validated.error.issues.slice(0, 6));
+      console.warn(`[ledger] attempt ${attempt} schema failed: ${lastError}`);
       continue;
     }
+    console.log(`[ledger] attempt ${attempt} validated, rows=${validated.data.rows.length}`);
 
     return validated.data;
   }
@@ -428,11 +501,18 @@ function resolvePayload(
     });
   }
 
+  const drivers = pruneExtractedDrivers(raw.extractedDrivers);
+  if (drivers.dropped.length) {
+    console.warn(
+      `[ledger] dropped unrecognised driver keys: ${drivers.dropped.join(", ")}`
+    );
+  }
+
   return {
     segmentId,
     classificationNote: chosen ? undefined : raw.classificationNote,
     fallbackNote,
-    driverOverrides: filing ? (raw.extractedDrivers ?? []) : [],
+    driverOverrides: filing ? drivers.kept : [],
     rows: resolved,
   };
 }

@@ -37,10 +37,12 @@ interface LedgerPayload {
 }
 
 /**
- * The reasoning rail is the only orchestrated moment in the interface. When
- * the model answers, its lines arrive on their own schedule. When it does not,
- * the corpus trace is played at a fixed interval so the rail still resolves
- * rather than sitting empty.
+ * The reasoning rail is the only orchestrated moment in the interface.
+ *
+ * On the archetype path there is no network at all, so the corpus trace is
+ * replayed locally at this interval. The pacing is a deliberate reading rhythm,
+ * not latency, and the ledger underneath it is already computed and on screen.
+ * On the filing path the model's own lines arrive on their own schedule.
  */
 const TRACE_INTERVAL_MS = 170;
 
@@ -56,6 +58,9 @@ export default function Page() {
 
   const reduced = useReducedMotion();
   const requestId = useRef(0);
+  // The in flight request, so a new one can cancel it rather than racing it.
+  const inFlight = useRef<AbortController | null>(null);
+  const [pending, setPending] = useState(false);
 
   const institution = useMemo(() => {
     const id = payload?.segmentId ?? institutionId;
@@ -78,8 +83,38 @@ export default function Page() {
     [institution, computed, economics]
   );
 
+  /**
+   * Picking one of the four archetypes renders instantly from the corpus. No
+   * fetch, no stream, no model.
+   *
+   * This supersedes BUILD_PROMPT section 4's per institution model adjustment
+   * for the archetype path. Contract A now serves exactly one trigger, the
+   * pasted filing, which is the only input the corpus cannot already answer.
+   */
+  function selectArchetype(id: SegmentId) {
+    // Abandon anything the filing path left running.
+    requestId.current++;
+    inFlight.current?.abort();
+    inFlight.current = null;
+    setPending(false);
+
+    setInstitutionId(id);
+    setPayload(null);
+    setNotice(null);
+    setTrace([]);
+    setFiling("");
+    setScreen("ledger");
+  }
+
   async function generate(id: SegmentId | null, excerpt: string) {
     const mine = ++requestId.current;
+
+    // Cancel whatever is still running before starting anything new.
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
+
+    setPending(true);
     setScreen("building");
     setTrace([]);
     setPayload(null);
@@ -93,6 +128,7 @@ export default function Page() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ institutionId: id, filing: excerpt }),
+        signal: controller.signal,
       });
 
       await readEventStream(response, (event) => {
@@ -105,9 +141,16 @@ export default function Page() {
           message = event.message;
         }
       });
-    } catch {
+    } catch (error) {
+      // A request we cancelled ourselves is not a failure to report.
+      if (error instanceof DOMException && error.name === "AbortError") return;
       message =
         "The ledger did not generate. Try again, or pick an archetype instead of pasting a filing.";
+    } finally {
+      if (requestId.current === mine) {
+        setPending(false);
+        inFlight.current = null;
+      }
     }
 
     if (requestId.current !== mine) return;
@@ -156,6 +199,9 @@ export default function Page() {
 
   function startOver() {
     requestId.current++;
+    inFlight.current?.abort();
+    inFlight.current = null;
+    setPending(false);
     setScreen("question");
     setInstitutionId(null);
     setFiling("");
@@ -170,11 +216,8 @@ export default function Page() {
       <Chooser
         filing={filing}
         onFilingChange={setFiling}
-        onPick={(id) => {
-          setInstitutionId(id);
-          void generate(id, filing.trim());
-          setFiling("");
-        }}
+        pending={pending}
+        onPick={selectArchetype}
         onBuildFromFiling={() => {
           setInstitutionId(null);
           void generate(null, filing.trim());
