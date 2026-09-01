@@ -71,7 +71,7 @@ export function Drilldown({
       {gates.length > 0 ? (
         <>
           <h4 className="font-sans text-sm font-semibold leading-tight text-ink">
-            What is holding it
+            {gates.length === 1 ? "One gate holds this" : `${gates.length} gates hold this`}
           </h4>
           <div className="mt-4 grid gap-px border border-hairline bg-hairline lg:grid-cols-2">
             {gates.map((gate) => (
@@ -121,9 +121,8 @@ export function Drilldown({
         </>
       ) : (
         <p className="max-w-[65ch] font-body text-sm leading-relaxed text-slate">
-          {institution.name} already evidences every control this workload
-          requires. The ceiling is reachable today, which is why nothing is held
-          against it in the ledger above.
+          {institution.name} evidences every control this workload requires.
+          The ceiling is reachable today.
         </p>
       )}
 
@@ -186,7 +185,7 @@ function Proof({ conversation }: { conversation: ConversationScenario }) {
               <li key={turn.index} className="min-h-[1px]">
                 {turn.rail.length === 0 ? (
                   <p className="font-mono text-xs leading-tight text-hairline">
-                    no finding on this turn
+                    nothing to evaluate
                   </p>
                 ) : (
                   turn.rail.map((finding, i) => {

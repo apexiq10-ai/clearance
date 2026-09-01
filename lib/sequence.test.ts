@@ -362,7 +362,7 @@ test("the closing line reports two phases where there is no phase three", () => 
     const institution = INSTITUTIONS_BY_ID[id]!;
     const { phases } = sequenceFor(institution);
     assert.equal(phases.length, 2, `${id} should have two phases`);
-    assert.match(sequenceClosingLine(phases), /two phases/);
+    assert.match(sequenceClosingLine(phases), /two steps/);
   }
 });
 

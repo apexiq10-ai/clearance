@@ -129,7 +129,7 @@ export function LedgerRow({
                 <span className="text-slate">{usd(0)}</span>
               </Numeral>
               <span className="ml-2 font-body text-sm text-slate">
-                no gate holds this workload
+                nothing holds this workload
               </span>
             </>
           ) : (
@@ -157,7 +157,7 @@ export function LedgerRow({
           provenance={volumeProvenance(workload, institution, row)}
           align="left"
         >
-          <span>how that volume is derived</span>
+          <span>where this volume comes from</span>
         </Numeral>
       </div>
 

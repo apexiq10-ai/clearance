@@ -212,7 +212,7 @@ export function SystemsSchematic({
           fill="var(--color-slate)"
           className="font-mono"
         >
-          solid violet, evidenced today
+          solid, evidenced today
         </text>
         <text
           x={220}
@@ -230,7 +230,7 @@ export function SystemsSchematic({
           fill="var(--color-slate)"
           className="font-mono"
         >
-          dashed line, a locked gate on that system
+          dashed, a locked gate above
         </text>
       </svg>
 
@@ -254,7 +254,7 @@ export function SystemsSchematic({
         ) : (
           <p className="font-mono text-xs text-slate">
             {model.evidencedCount} of {model.gates.length} gates evidenced today.
-            Hover a gate for what it requires and who owns it.
+            Hover a gate for detail.
           </p>
         )}
       </div>

@@ -154,8 +154,7 @@ export default function Page() {
     } catch (error) {
       // A request we cancelled ourselves is not a failure to report.
       if (error instanceof DOMException && error.name === "AbortError") return;
-      message =
-        "The ledger did not generate. Try again, or pick an archetype instead of pasting a filing.";
+      message = "The ledger did not generate. Pick an archetype instead.";
     } finally {
       if (requestId.current === mine) {
         setPending(false);
@@ -183,8 +182,8 @@ export default function Page() {
       message =
         message ??
         (id
-          ? "The model pass did not complete. These are the corpus defaults for this archetype, unadjusted."
-          : "The filing did not classify. This is the regional bank archetype on corpus defaults. Pick an institution above to choose deliberately.");
+          ? "The model pass did not complete. These are corpus defaults, unadjusted."
+          : "The filing did not classify. This is the regional bank on corpus defaults. Pick an institution above.");
     }
 
     setPayload(received);

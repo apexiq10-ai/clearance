@@ -19,6 +19,7 @@ import {
 } from "../../../lib/brief";
 import { briefSchema, type Brief } from "../../../lib/schema";
 import { encodeEvent } from "../../../lib/stream";
+import { parseFirstJsonObject } from "../../../lib/json";
 import { roundToNearestThousand } from "../../../lib/compute";
 
 export const runtime = "nodejs";
@@ -56,6 +57,24 @@ Write every dollar figure as digits with thousands separators, for example $1,32
 The sequence is presented to the reader as numbered steps, not phases. Write "step one" or "step 2" and never the word "phase".
 
 Never use an em-dash. Return only JSON with keys position, plays, objections, caseForNow, nextThirtyDays, questions. No markdown, no preamble.`;
+
+/**
+ * The corrective call. One sentence, not six sections.
+ *
+ * A contradiction only ever invalidates the position. Regenerating the whole
+ * brief to fix it cost a second full pass, which did not fit under the timeout
+ * and degraded the credit union to a timeout note three runs in four. This asks
+ * for the sentence alone and splices it into the attempt that already validated.
+ */
+const POSITION_SYSTEM_PROMPT = `You are correcting a single sentence in a revenue capture brief for an enterprise seller. You are given the same computed ledger, sequence and constraints the brief was written from, and the sentence that was rejected.
+
+Write one replacement sentence for \`position\`: the single structural fact that most determines how fast this institution can move.
+
+The sentence may only claim that something applies or does not apply to this institution if that claim is directly checkable against the sequence you were given. Never assert that this institution is exempt from, not subject to, unaffected by, or does not require a specific gate or regulation that appears anywhere in its own sequence. If a gate is present in the sequence, you may not claim the institution is exempt from it. You may describe how a gate is governed or owned, because that is a different claim from exemption.
+
+Write dollar figures as digits. Say step, never phase. Never use an em-dash.
+
+Return only JSON with the single key position. No markdown, no preamble.`;
 
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as {
@@ -98,7 +117,7 @@ export async function POST(request: NextRequest) {
         payload: {
           deterministic,
           brief: null,
-          note: "The generated sections did not build because no model key is configured. Everything computed from the ledger is unchanged.",
+          note: "The generated sections did not build. No model key is configured. Everything computed is unchanged.",
         },
       }),
       { headers: sseHeaders() }
@@ -155,8 +174,8 @@ export async function POST(request: NextRequest) {
             deterministic,
             brief: null,
             note: timedOut
-              ? "The generated sections took too long and were stopped. Everything computed from the ledger is unchanged."
-              : "The generated sections did not build. Everything computed from the ledger is unchanged.",
+              ? "The generated sections took too long and were stopped. Everything computed is unchanged."
+              : "The generated sections did not build. Everything computed is unchanged.",
           },
         });
       } finally {
@@ -314,7 +333,6 @@ async function generate(
   signal: AbortSignal
 ): Promise<{ brief: Brief; note: string | null }> {
   let lastError = "";
-  let lastValid: Brief | null = null;
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const emitted = new Set<string>();
@@ -347,24 +365,14 @@ async function generate(
       if (attempt === 0) emitCompletedSections(text, emitted, send);
     }
 
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start === -1 || end === -1) {
-      lastError = "no JSON object found";
-      console.warn(`[brief] attempt ${attempt} produced no JSON object`);
-      continue;
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text.slice(start, end + 1));
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : "unparseable JSON";
+    const extracted = parseFirstJsonObject(text);
+    if (!extracted.ok) {
+      lastError = extracted.error;
       console.warn(`[brief] attempt ${attempt} JSON parse failed: ${lastError}`);
       continue;
     }
 
-    const validated = briefSchema.safeParse(parsed);
+    const validated = briefSchema.safeParse(extracted.value);
     if (!validated.success) {
       lastError = JSON.stringify(validated.error.issues.slice(0, 6));
       console.warn(`[brief] attempt ${attempt} schema failed: ${lastError}`);
@@ -385,13 +393,29 @@ async function generate(
         `[brief] attempt ${attempt} exemption contradiction: claimed "${contradiction.phrase}" ` +
           `about ${contradiction.gateId}, which is in this institution's own sequence`
       );
-      lastValid = brief;
-      lastError =
-        `Your position sentence read: "${contradiction.sentence}" ` +
-        `That claims this institution is exempt from ${contradiction.gateName}, ` +
-        `which appears in its own sequence and is not cleared today. ` +
-        `Rewrite the position sentence so it makes no exemption claim about any gate in the sequence.`;
-      continue;
+
+      // Everything except the position already validated. Keep it, and ask for
+      // the one sentence again rather than paying for six sections twice.
+      const corrected = await regeneratePosition(
+        client,
+        userMessage,
+        contradiction,
+        signal
+      );
+
+      if (corrected && !detectExemptionContradiction(corrected, sequenceGateIds)) {
+        console.log("[brief] position-only retry accepted");
+        send({ kind: "trace", label: "position", value: corrected });
+        return { brief: { ...brief, position: corrected }, note: null };
+      }
+
+      // A second false claim is worse than no sentence. Everything else stands
+      // and the panel falls back to the deterministic position line.
+      console.warn("[brief] position-only retry also tripped, position withheld");
+      return {
+        brief: { ...brief, position: "" },
+        note: "The position sentence was withheld because it claimed an exemption this institution's own sequence contradicts. Everything else on this page is unchanged.",
+      };
     }
 
     console.log(
@@ -400,17 +424,52 @@ async function generate(
     return { brief, note: null };
   }
 
-  // A second false claim is worse than no sentence. Everything else stands and
-  // the position falls back to the deterministic line the panel already renders.
-  if (lastValid) {
-    console.warn("[brief] exemption contradiction survived the retry, position withheld");
-    return {
-      brief: { ...lastValid, position: "" },
-      note: "The position sentence was withheld because it claimed an exemption this institution's own sequence contradicts. Everything else on this page is unchanged.",
-    };
-  }
-
   throw new Error(`brief validation failed twice: ${lastError}`);
+}
+
+/** One sentence, capped tight so it costs seconds rather than a second pass. */
+async function regeneratePosition(
+  client: Anthropic,
+  userMessage: string,
+  contradiction: { sentence: string; gateName: string },
+  signal: AbortSignal
+): Promise<string | null> {
+  try {
+    const message = await client.messages.create(
+      {
+        model: MODEL,
+        max_tokens: 300,
+        system: POSITION_SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content:
+              userMessage +
+              `\n\nThe position sentence you wrote was rejected. It read: "${contradiction.sentence}" ` +
+              `That claims this institution is exempt from ${contradiction.gateName}, which appears in its own ` +
+              `sequence and is not cleared today. Write one replacement sentence that makes no exemption claim ` +
+              `about any gate in the sequence. Return only {"position": "..."}.`,
+          },
+        ],
+      },
+      { signal }
+    );
+
+    const text = message.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("");
+
+    const extracted = parseFirstJsonObject(text);
+    if (!extracted.ok) return null;
+
+    const parsed = extracted.value as { position?: unknown };
+    if (typeof parsed.position !== "string" || !parsed.position.trim()) return null;
+    return stepVocabulary(parsed.position.trim());
+  } catch (error) {
+    console.warn("[brief] position-only retry failed", error);
+    return null;
+  }
 }
 
 /** The reader sees steps, so the generated text says steps. */

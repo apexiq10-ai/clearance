@@ -124,7 +124,7 @@ function inertNote(key: FieldKey, workloads: WorkloadArchetype[]): string | null
     return primary !== "voice" && primary !== "outbound";
   });
   if (key.startsWith("digital") && !anyDigital) {
-    return "Every workload in this ledger is voice led, so this does not move a figure here.";
+    return "Every workload here is voice led. This field moves nothing.";
   }
   if (key === "voiceHigh" || key === "containedLow") {
     return "Carried for the range. The ledger pairs the low contact cost with the high contained cost.";
@@ -199,7 +199,7 @@ export function AssumptionsPanel({
             onClick={onReset}
             className="font-sans text-sm text-slate underline decoration-hairline underline-offset-4 transition-colors hover:text-violet"
           >
-            Put the corpus defaults back
+            Reset defaults
           </button>
         ) : null}
       </div>

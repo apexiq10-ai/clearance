@@ -411,7 +411,9 @@ function mailtoHref(
   brief: Brief | null
 ): string {
   const subject = `Account brief. ${institution.name}`;
-  const body: string[] = [brief?.position ?? institution.profile, ""];
+  // Falsy rather than nullish: the position is an empty string when the guard
+  // withholds it, and ?? would put a blank first line in the email.
+  const body: string[] = [brief?.position || institution.profile, ""];
 
   if (deterministic) {
     body.push(

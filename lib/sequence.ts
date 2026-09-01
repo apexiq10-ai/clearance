@@ -239,7 +239,7 @@ export function sequenceClosingLine(phases: Phase[]): string {
   const last = phases[phases.length - 1]!;
 
   const controls = `${spellCount(gateCount)} control${gateCount === 1 ? "" : "s"}`;
-  const phaseWord = `${spellCount(phases.length)} phase${phases.length === 1 ? "" : "s"}`;
+  const phaseWord = `${spellCount(phases.length)} step${phases.length === 1 ? "" : "s"}`;
   const weeks =
     last.weeksLow === last.weeksHigh
       ? `${last.weeksHigh} weeks`

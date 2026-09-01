@@ -76,7 +76,7 @@ export function LedgerTable({
           onClick={onStartOver}
           className="font-sans text-sm text-slate underline decoration-hairline underline-offset-4 transition-colors hover:text-violet"
         >
-          Pick another institution
+          Change institution
         </button>
       </header>
 

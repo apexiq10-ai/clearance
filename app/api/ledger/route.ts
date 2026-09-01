@@ -13,6 +13,7 @@ import {
   type LedgerResponse,
 } from "../../../lib/schema";
 import { encodeEvent, parseTraceLine } from "../../../lib/stream";
+import { parseFirstJsonObject } from "../../../lib/json";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
       encodeEvent({
         kind: "error",
         message:
-          "The ledger did not generate. Pick an institution, or paste an excerpt from a filing.",
+          "The ledger did not generate. Pick an institution, or paste a filing.",
       }),
       { status: 400, headers: sseHeaders() }
     );
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
       encodeEvent({
         kind: "error",
         message:
-          "The ledger did not generate because no model key is configured. Set ANTHROPIC_API_KEY and try again, or pick an archetype to read its default ledger.",
+          "The ledger did not generate. No model key is configured. Set ANTHROPIC_API_KEY, or pick an archetype instead.",
       }),
       { status: 503, headers: sseHeaders() }
     );
@@ -281,10 +282,10 @@ export async function POST(request: NextRequest) {
           payload: corpusFallback(
             fallbackInstitution,
             timedOut
-              ? "The model pass took too long and was stopped. These are the corpus defaults for this archetype, unadjusted."
+              ? "The model pass took too long and was stopped. These are corpus defaults, unadjusted."
               : chosen
-                ? "The model pass did not complete. These are the corpus defaults for this archetype, unadjusted."
-                : "The filing did not classify. This is the regional bank archetype on corpus defaults. Pick an institution above to choose deliberately."
+                ? "The model pass did not complete. These are corpus defaults, unadjusted."
+                : "The filing did not classify. This is the regional bank on corpus defaults. Pick an institution above."
           ),
         });
       } finally {
@@ -413,19 +414,8 @@ async function runModel(
   throw new Error(`schema validation failed twice: ${lastError}`);
 }
 
-function safeParseJson(
-  raw: string
-): { ok: true; value: unknown } | { ok: false; error: string } {
-  const trimmed = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "");
-  const start = trimmed.indexOf("{");
-  const end = trimmed.lastIndexOf("}");
-  if (start === -1 || end === -1) return { ok: false, error: "no JSON object found" };
-  try {
-    return { ok: true, value: JSON.parse(trimmed.slice(start, end + 1)) };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "unparseable JSON" };
-  }
-}
+/** Brace-depth scan for the first complete object. See lib/json.ts. */
+const safeParseJson = parseFirstJsonObject;
 
 // ---------------------------------------------------------------------------
 // Resolution. This is where constraint 9 is enforced.
@@ -461,11 +451,11 @@ function resolvePayload(
   } else if (raw.segmentId) {
     segmentId = raw.segmentId;
     fallbackNote =
-      "The filing classified weakly. This is the closest archetype, and the numbers are its defaults where the text did not say otherwise. Pick an institution above to choose deliberately.";
+      "The filing classified weakly. This is the closest archetype. Figures are its defaults where the text was silent.";
   } else {
     segmentId = FALLBACK_SEGMENT;
     fallbackNote =
-      "The filing did not classify. This is the regional bank archetype on corpus defaults. Pick an institution above to choose deliberately.";
+      "The filing did not classify. This is the regional bank on corpus defaults. Pick an institution above.";
   }
 
   const institution = INSTITUTIONS_BY_ID[segmentId]!;

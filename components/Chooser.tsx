@@ -53,8 +53,8 @@ export function Chooser({
         </h1>
         <p className="mt-5 max-w-[65ch] font-body text-base leading-relaxed text-slate sm:text-lg">
           {hasFiling
-            ? "Build it from the excerpt, or pick the institution it describes."
-            : "The spread is the roadmap. Pick an institution, or paste a filing."}
+            ? "Build from the excerpt. Or pick the institution it describes."
+            : "The spread is the roadmap. Pick an institution. Or paste a filing."}
         </p>
 
         <div className="mt-14 grid gap-px border border-hairline bg-hairline">
@@ -91,7 +91,7 @@ export function Chooser({
             onChange={(e) => onFilingChange(e.target.value)}
             rows={2}
             className="w-full resize-none border-0 border-b border-hairline bg-transparent px-1 py-3 font-body text-base text-ink transition-colors placeholder:text-slate focus:border-violet focus:outline-none"
-            placeholder="Or paste an excerpt from a call report, 5300, or annual statement."
+            placeholder="Paste a call report, a 5300, or an annual statement."
           />
 
           {hasFiling ? (
@@ -111,10 +111,10 @@ export function Chooser({
                 </span>
                 <span className="font-body text-sm leading-relaxed text-slate sm:text-right">
                   {pending
-                    ? "Reading the filing. This usually takes under a minute."
+                    ? "Reading the filing. Under a minute."
                     : selected
-                      ? `Applying this excerpt to ${selected.name.toLowerCase()}.`
-                      : "Reading the excerpt to work out which of the four it is."}
+                      ? `Applied to ${selected.name.toLowerCase()}.`
+                      : "The excerpt picks the institution."}
                 </span>
               </button>
             </div>

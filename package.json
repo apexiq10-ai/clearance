@@ -8,7 +8,7 @@
     "start": "next start",
     "prebuild": "tsx scripts/validate-corpus.ts",
     "validate": "tsx scripts/validate-corpus.ts",
-    "test": "tsx lib/compute.test.ts && tsx lib/sequence.test.ts && tsx lib/brief.test.ts",
+    "test": "tsx lib/compute.test.ts && tsx lib/sequence.test.ts && tsx lib/brief.test.ts && tsx lib/json.test.ts",
     "ledgers": "tsx scripts/print-ledgers.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "sequence": "tsx scripts/print-sequence.ts"

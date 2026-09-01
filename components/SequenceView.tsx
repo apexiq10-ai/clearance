@@ -60,7 +60,7 @@ export function SequenceView({
                   Step {phase.step} of {phase.stepCount}
                 </p>
                 <p className="mt-0.5 font-mono text-xs leading-tight text-slate">
-                  Cumulative: weeks {phase.weeksLow} to {phase.weeksHigh}
+                  Cumulative weeks {phase.weeksLow} to {phase.weeksHigh}
                 </p>
               </div>
             </div>
