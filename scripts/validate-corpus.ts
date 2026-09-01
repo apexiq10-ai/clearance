@@ -39,6 +39,9 @@ for (const g of CONTROL_GATES) {
       err(`gate ${g.id} references unknown regulation ${rid}`);
     }
   }
+  if (!g.commercialMotion || g.commercialMotion.length < 40) {
+    err(`gate ${g.id} has no commercial motion. The drill-down has nothing to sell.`);
+  }
 }
 
 for (const w of WORKLOADS) {

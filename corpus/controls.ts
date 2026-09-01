@@ -36,6 +36,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Information security extends the existing digital banking authenticator to the voice session and writes the satisfied assurance level into the interaction record. Until that record exists, every money-movement action is unevidenced regardless of how the caller was verified.",
+    commercialMotion:
+      "Real-time step-up authentication inside the voice session, with the satisfied assurance level written to the interaction record. Sold to information security as evidence rather than to servicing as convenience, because the buyer is the person who has to defend the record.",
     residualHumanGate: undefined,
   },
   {
@@ -57,6 +59,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Model risk validates the action classes rather than the model. Tiering by consumer financial consequence lets tier three informational handling ship in the first cycle while tier one money movement waits for the second, which is how an institution gets value before the committee finishes.",
+    commercialMotion:
+      "Action-class tiering with a per-action audit trail and a defined override path, so validation scopes to what the agent is permitted to do rather than to the model itself. This is the difference between a validation cycle that scopes and one that stalls.",
     residualHumanGate:
       "Adverse or contested outcomes route to a human reviewer with the model's reasoning attached.",
   },
@@ -79,6 +83,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Servicing operations treats the agent as a notice-receiving channel with the same evidentiary standing as a branch. The clock starts when the customer speaks, not when a human reads the transcript, and the record must say so.",
+    commercialMotion:
+      "Notice-event capture that writes to the system of record in the same transaction as the utterance, with clock state surfaced to the servicing floor. Sold as evidentiary standing for the channel, not as automation.",
   },
   {
     id: "gate-output-constraint",
@@ -99,6 +105,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Compliance moves from sampling to full-population review, which agentic volume makes both necessary and possible. Approved language covers the disclosure surface, generation covers everything else, and the boundary between them is auditable.",
+    commercialMotion:
+      "Approved-content routing on regulated disclosures with full-population transcript surveillance behind it. Agentic volume breaks sample-based review, which makes this a requirement the platform creates and then satisfies.",
     residualHumanGate:
       "Flagged interactions are queued for compliance review within the servicing day.",
   },
@@ -121,6 +129,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Information security approves the data boundary once, in writing, and the platform enforces it at the prompt layer. This is the first question asked and the last one answered, so it should be answered first.",
+    commercialMotion:
+      "Prompt-layer redaction and a documented provider boundary, answered once in writing. It is the first question a chief information security officer asks and the last one most vendors answer, so answering it first is itself the differentiator.",
   },
   {
     id: "gate-core-write-access",
@@ -143,6 +153,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "The core platform team exposes the servicing transactions the agent needs. Where the core vendor controls that surface, the sequencing is set by the vendor's roadmap rather than the institution's, and the business case must be built around read-only resolution until it opens.",
+    commercialMotion:
+      "Orchestration across the core, the processor, and the servicing platform, so a resolution is one conversation rather than three systems. Where the core vendor controls the surface, the honest sale is read-only resolution now and transactional resolution on the vendor's cadence.",
   },
   {
     id: "gate-consent-architecture",
@@ -163,6 +175,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Legal resolves consent to the contact and purpose level and the platform refuses to dial without it. Treating synthetic outbound as a robocall by default is the conservative posture and it is also the only posture that survives a class action.",
+    commercialMotion:
+      "Consent resolved to the contact and the purpose before dialing, with synthetic voice disclosure and cross-channel opt-out honoured in session. The platform refuses to dial without it, and that refusal is the product.",
     residualHumanGate:
       "Right party contact on a delinquent mortgage account routes to assigned personnel rather than completing autonomously.",
   },
@@ -185,6 +199,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Fraud operations defines the non-disclosing explanation and the agent is barred from improvising around a restricted account. The most helpful answer here is the prohibited one, so helpfulness cannot be the optimisation target.",
+    commercialMotion:
+      "Non-disclosing refusal paths enforced at the integration layer rather than in a prompt, because a prompt instruction is not a control. Sold to fraud operations as a boundary the agent cannot talk its way around.",
     residualHumanGate:
       "All restricted-account conversations transfer to fraud operations after the approved explanation.",
   },
@@ -207,6 +223,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Compliance publishes the AI systems program once and then sequences states by written premium. Carriers that sequence by use case instead of by state rebuild the same approval three times.",
+    commercialMotion:
+      "Per-state claims timelines encoded in the agent and deployment sequenced by written premium. Carriers that sequence by use case rebuild the same approval in every state, and showing them that is the shortest path to a first state.",
   },
   {
     id: "gate-adverse-action-reasoning",
@@ -227,6 +245,8 @@ export const CONTROL_GATES: ControlGate[] = [
     },
     unlockPath:
       "Compliance requires the reason before it permits the decision. In practice this keeps agents on the intake and triage side of credit workflows for longer than any vendor roadmap assumes, and the honest business case reflects that.",
+    commercialMotion:
+      "Traceable reason codes attached to any conversational path approaching a credit or coverage decision. In practice this keeps the agent on intake and triage for longer than most roadmaps assume, and saying so is what makes the rest of the case believable.",
     residualHumanGate:
       "Adverse decisions are issued by a human underwriter or servicing officer.",
   },

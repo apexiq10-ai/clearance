@@ -154,6 +154,12 @@ export interface ControlGate {
    * Written to be read aloud in a QBR. No hedging, no disclaimers.
    */
   unlockPath: string;
+  /**
+   * What a communications and customer engagement platform actually sells to
+   * clear this gate. Written as a capability, never as a product name.
+   * This is the field that converts a compliance observation into a deal.
+   */
+  commercialMotion: string;
   /** Whether a human decision must remain in the loop even after unlock. */
   residualHumanGate?: string;
 }
