@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AppHeader } from "../components/AppHeader";
 import { Chooser } from "../components/Chooser";
 import { LedgerTable } from "../components/LedgerTable";
 import { ReasoningRail } from "../components/ReasoningRail";
@@ -231,49 +232,60 @@ export default function Page() {
     setEconomics(ECONOMICS);
   }
 
+  // The header is present on every screen, so the reader is always inside one
+  // instrument rather than four stacked pages.
   if (screen === "question") {
     return (
-      <Chooser
-        filing={filing}
-        onFilingChange={setFiling}
-        pending={pending}
-        onPick={selectArchetype}
-        onBuildFromFiling={() => {
-          setInstitutionId(null);
-          void generate(null, filing.trim());
-          setFiling("");
-        }}
-      />
+      <>
+        <AppHeader onHome={startOver} />
+        <Chooser
+          filing={filing}
+          onFilingChange={setFiling}
+          pending={pending}
+          onPick={selectArchetype}
+          onBuildFromFiling={() => {
+            setInstitutionId(null);
+            void generate(null, filing.trim());
+            setFiling("");
+          }}
+        />
+      </>
     );
   }
 
   if (screen === "building" || !institution || !computed) {
     return (
-      <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-        <header className="border-b border-hairline pb-6">
-          <h1 className="font-sans text-xl font-semibold leading-tight text-ink sm:text-2xl">
-            {institution?.name ?? "Reading the filing"}
-          </h1>
-        </header>
-        <div className="mt-10 lg:grid lg:grid-cols-[15rem_1fr] lg:gap-14">
-          <ReasoningRail lines={trace} visible={trace.length} />
-        </div>
-      </main>
+      <>
+        <AppHeader onHome={startOver} />
+        <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+          <header className="border-b border-hairline pb-6">
+            <h1 className="font-sans text-xl font-semibold leading-tight text-ink sm:text-2xl">
+              {institution?.name ?? "Reading the filing"}
+            </h1>
+          </header>
+          <div className="mt-10 lg:grid lg:grid-cols-[15rem_1fr] lg:gap-14">
+            <ReasoningRail lines={trace} visible={trace.length} />
+          </div>
+        </main>
+      </>
     );
   }
 
   return (
-    <LedgerTable
-      ledger={computed.ledger}
-      institution={institution}
-      economics={economics}
-      trace={trace}
-      phases={phases}
-      notice={notice ?? payload?.fallbackNote ?? payload?.classificationNote ?? null}
-      onEconomicsChange={setEconomics}
-      onEconomicsReset={() => setEconomics(ECONOMICS)}
-      economicsDirty={economics !== ECONOMICS}
-      onStartOver={startOver}
-    />
+    <>
+      <AppHeader onHome={startOver} />
+      <LedgerTable
+        ledger={computed.ledger}
+        institution={institution}
+        economics={economics}
+        trace={trace}
+        phases={phases}
+        notice={notice ?? payload?.fallbackNote ?? payload?.classificationNote ?? null}
+        onEconomicsChange={setEconomics}
+        onEconomicsReset={() => setEconomics(ECONOMICS)}
+        economicsDirty={economics !== ECONOMICS}
+        onStartOver={startOver}
+      />
+    </>
   );
 }

@@ -73,9 +73,24 @@ export function Drilldown({
           <h4 className="font-sans text-sm font-semibold leading-tight text-ink">
             {gates.length === 1 ? "One gate holds this" : `${gates.length} gates hold this`}
           </h4>
+          {/*
+            This narrowly revises DESIGN_SPEC_V2 section 4's "nothing else
+            moves" rule, for exactly one place, the way prior amendments in this
+            build have been marked.
+            
+            Gate resolution is a real synchronous computation. The cascade gives
+            that work perceptible presence, the same principle the reasoning
+            rail already applies to real reasoning. It is not decoration
+            standing in for work that is not happening. 70ms apart, under 500ms
+            in total, and prefers-reduced-motion collapses it to the final state.
+          */}
           <div className="mt-4 grid gap-px border border-hairline bg-hairline lg:grid-cols-2">
-            {gates.map((gate) => (
-              <div key={gate.id} className="bg-paper px-5 py-5">
+            {gates.map((gate, index) => (
+              <div
+                key={gate.id}
+                className="cascade-in bg-paper px-5 py-5"
+                style={{ animationDelay: `${index * 70}ms` }}
+              >
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <h5 className="font-sans text-base font-semibold leading-tight text-ink">
                     {gate.name}

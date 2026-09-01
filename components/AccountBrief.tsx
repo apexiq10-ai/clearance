@@ -7,6 +7,7 @@ import type { Play, Position, SchematicModel } from "../lib/brief";
 import { briefUsd } from "../lib/brief";
 import { readEventStream } from "../lib/stream";
 import { SystemsSchematic } from "./SystemsSchematic";
+import { Mark } from "./Mark";
 
 interface Deterministic {
   position: Position;
@@ -84,7 +85,7 @@ export function AccountBrief({
 
   if (status === "idle") {
     return (
-      <section className="mt-16 border border-hairline print:hidden">
+      <section className="mt-5 border border-hairline print:hidden">
         <button
           type="button"
           onClick={build}
@@ -102,12 +103,18 @@ export function AccountBrief({
   }
 
   return (
-    <section className="brief-canvas mt-16 bg-brief-canvas p-4 sm:p-8">
+    <section className="brief-canvas mt-5 bg-brief-canvas p-4 sm:p-8">
       <article className="account-brief brief-frame bg-brief-paper px-6 py-8 text-brief-ink sm:px-10 sm:py-10">
         <div className="brief-corner" aria-hidden="true" />
 
         <header className="flex flex-wrap items-baseline justify-between gap-3 border-b border-brief-line pb-4">
-          <span className="brief-header-mark">{institution.name}</span>
+          <span className="flex items-center gap-2.5">
+            {/* Recoloured to the paper register, so it belongs to the printed
+                document rather than importing the app's palette into it. */}
+            <Mark variant="brief" className="translate-y-[2px]" />
+            <span className="brief-header-mark">Clearance</span>
+            <span className="brief-header-mark">{institution.name}</span>
+          </span>
           <span className="brief-header-mark">
             {deterministic
               ? `prepared ${deterministic.preparedAt} / ref ${deterministic.reference}`

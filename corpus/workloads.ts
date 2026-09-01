@@ -117,6 +117,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "regulatory-exposure",
       },
     ],
+    plainLanguageSummary:
+      "I'm locked out of my account and I need in right now.",
     operatorNote:
       "The highest ceiling and the shortest unlock path in the portfolio. If an institution does only one thing, this is it.",
   },
@@ -234,6 +236,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "regulatory-exposure",
       },
     ],
+    plainLanguageSummary:
+      "Someone used my card, and it wasn't me.",
     operatorNote:
       "The largest locked value in a consumer bank ledger. Not because the agent cannot do it, because provisional credit is a tier one action.",
   },
@@ -338,6 +342,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "customer-harm",
       },
     ],
+    plainLanguageSummary:
+      "I have a question about my account, my balance, or a fee.",
     operatorNote:
       "Fund the programme here. Do not build the strategy here.",
   },
@@ -440,6 +446,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "regulatory-exposure",
       },
     ],
+    plainLanguageSummary:
+      "I need to know what I owe, or I'm struggling to pay it.",
     operatorNote:
       "Highest regulatory density in the portfolio. The right agentic posture is triage in front of the human, not replacement of the human.",
   },
@@ -549,6 +557,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "customer-harm",
       },
     ],
+    plainLanguageSummary:
+      "The bank is calling me about a payment I've missed.",
     operatorNote:
       "Every vendor puts this on the first slide. It should be the last workload deployed, and saying so out loud is the fastest way to earn a servicing leader's trust.",
   },
@@ -650,6 +660,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "customer-harm",
       },
     ],
+    plainLanguageSummary:
+      "I think someone is stealing from me, or my account just got frozen.",
     operatorNote:
       "Do not measure this workload on containment. Measure it on time to first human for the cases that need one.",
   },
@@ -759,6 +771,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "regulatory-exposure",
       },
     ],
+    plainLanguageSummary:
+      "I was just in an accident and I need to file a claim.",
     operatorNote:
       "The intake agent must know the state before it knows the loss. That single sequencing detail is what separates a carrier-grade agent from a demo.",
   },
@@ -845,6 +859,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "regulatory-exposure",
       },
     ],
+    plainLanguageSummary:
+      "Where does my claim stand, and when do I get paid.",
     operatorNote:
       "The carrier equivalent of deposit servicing. Fund the programme here, and let it pay for the FNOL governance work.",
   },
@@ -931,6 +947,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "regulatory-exposure",
       },
     ],
+    plainLanguageSummary:
+      "I need to book time with someone at the bank or the carrier.",
     operatorNote:
       "Small money, fast proof. This is what earns the second conversation with the risk committee.",
   },
@@ -1031,6 +1049,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "regulatory-exposure",
       },
     ],
+    plainLanguageSummary:
+      "I need something from my advisor, not advice, just service.",
     operatorNote:
       "Report this workload in advisor hours recovered, not in containment. Wealth leadership does not buy deflection.",
   },
@@ -1132,6 +1152,8 @@ export const WORKLOADS: WorkloadArchetype[] = [
         severity: "customer-harm",
       },
     ],
+    plainLanguageSummary:
+      "I sent money and it didn't arrive, or it went to the wrong place.",
     operatorNote:
       "The fastest growing call driver in retail banking and the one least represented in existing IVR containment models.",
   },

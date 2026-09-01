@@ -45,8 +45,9 @@ export function Chooser({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-5xl flex-col justify-center px-5 py-20 sm:px-8">
-      <div className="-mt-[8vh]">
+    <main className="mx-auto flex min-h-[calc(100dvh-4.5rem)] max-w-5xl flex-col justify-center px-5 py-20 sm:px-8">
+      {/* The single motion beat this screen gets. Nothing else here moves. */}
+      <div className="mount-rise -mt-[8vh]">
         <h1 className="max-w-3xl font-serif text-4xl leading-tight text-ink sm:text-5xl">
           Every vendor sells the ceiling. Every institution budgets against the
           floor.

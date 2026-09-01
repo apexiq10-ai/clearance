@@ -10,6 +10,7 @@ import { WORKLOADS_BY_ID } from "../corpus/workloads";
 import { LedgerRow } from "./LedgerRow";
 import { SequenceView } from "./SequenceView";
 import { AccountBrief } from "./AccountBrief";
+import { SectionMark } from "./SectionMark";
 import { ReasoningRail } from "./ReasoningRail";
 import { AssumptionsPanel, ASSUMPTION_COUNT } from "./AssumptionsPanel";
 import { Numeral } from "./Provenance";
@@ -175,12 +176,16 @@ export function LedgerTable({
         </p>
       ) : null}
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[15rem_1fr] lg:gap-14">
+      <SectionMark index="01" label="The ledger" className="mt-10" />
+
+      <div className="mt-5 grid gap-10 lg:grid-cols-[15rem_1fr] lg:gap-14">
         <aside className="lg:sticky lg:top-10 lg:self-start">
           <ReasoningRail lines={trace} visible={trace.length} />
         </aside>
 
         <section>
+          <SectionMark index="03" label="The detail, open any row" className="mb-4" />
+
           {/* The gap is the rule. No cell draws a border of its own. */}
           <div className="grid gap-px border border-hairline bg-hairline">
             {shown.rows.map((row) => {
@@ -257,7 +262,18 @@ export function LedgerTable({
         </section>
       </div>
 
+      <p className="mt-16 max-w-[65ch] font-body text-base leading-relaxed text-slate">
+        The spread above breaks into a sequence below.
+      </p>
+
+      <SectionMark index="02" label="The sequence" className="mt-8" />
       <SequenceView phases={phases} institution={institution} />
+
+      <p className="mt-16 max-w-[65ch] font-body text-base leading-relaxed text-slate">
+        The plan is enough to sell it. This is the document that says so.
+      </p>
+
+      <SectionMark index="04" label="The brief" className="mt-8" />
       <AccountBrief
         institution={institution}
         onFocusGate={(gateId) => {

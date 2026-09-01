@@ -230,6 +230,25 @@ const spellCount = (n: number) => COUNT_WORD[n] ?? String(n);
  * blocked by all ten gates. A closing line a reviewer can break is worse than
  * no closing line, so this one is computed.
  */
+/**
+ * The line above the step columns.
+ *
+ * The closing line explains the sequence after the reader has already scrolled
+ * past it. This is the same computed material, arriving before the thing it
+ * explains rather than after. Additive: the closing line stays where it is.
+ */
+export function sequenceOpeningLine(phases: Phase[]): string {
+  if (phases.length === 0) {
+    return "No control is holding value here.";
+  }
+  const gateCount = phases.reduce((n, p) => n + p.gates.length, 0);
+  const controls = `${spellCount(gateCount)} control${gateCount === 1 ? "" : "s"}`;
+  const them = gateCount === 1 ? "it" : "them";
+  return capitalise(
+    `${controls}. Clear ${them} in this order and the locked value above becomes real.`
+  );
+}
+
 export function sequenceClosingLine(phases: Phase[]): string {
   if (phases.length === 0) {
     return "No control is holding value here. Every workload is already at its ceiling.";

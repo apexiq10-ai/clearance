@@ -243,6 +243,14 @@ export interface WorkloadArchetype {
   failureModes: FailureMode[];
 
   /**
+   * One sentence, written for someone who has never worked in a contact
+   * centre. What does the customer actually say. Not a summary of the
+   * workload, a translation of it. Distinct from operatorNote, which is
+   * written for a servicing VP who already knows this domain.
+   */
+  plainLanguageSummary: string;
+
+  /**
    * The one sentence a servicing VP would nod at. Used as the row subtitle.
    */
   operatorNote: string;

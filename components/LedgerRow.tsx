@@ -87,6 +87,15 @@ export function LedgerRow({
         <span className="chip shrink-0">{TIER_LABEL[workload.riskTier]}</span>
       </div>
 
+      {/*
+        The one place Instrument Serif appears outside the thesis line and the
+        two totals. A quoted customer voice is a small editorial moment, not a
+        data label, and it earns the serif.
+      */}
+      <p className="mt-2 max-w-[65ch] font-serif text-sm italic leading-relaxed text-slate">
+        &ldquo;{workload.plainLanguageSummary}&rdquo;
+      </p>
+
       <p className="mt-2 max-w-[65ch] font-body text-sm leading-relaxed text-slate">
         {workload.operatorNote}
       </p>

@@ -267,3 +267,43 @@ body {
     content: "";
   }
 }
+
+/*
+ * POLISH_SPEC checkpoint B. Two motion beats, and only two.
+ *
+ * The first is the landing hero, once on first paint. The second is the
+ * drill-down gate cascade, which narrowly revises DESIGN_SPEC_V2 section 4's
+ * "nothing else moves" rule. See the comment in Drilldown.tsx for why.
+ *
+ * prefers-reduced-motion collapses both to their final state, through the
+ * reduce block above.
+ */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mount-rise {
+  animation: rise-in 400ms ease-out both;
+}
+
+@keyframes cascade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cascade-in {
+  animation: cascade-in 240ms ease-out both;
+}

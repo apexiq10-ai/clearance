@@ -181,6 +181,9 @@ for (const w of WORKLOADS) {
     err(`${w.id} has no failure modes. The Risk Committee agent will have nothing to say.`);
   if (w.systemsOfRecord.length === 0)
     err(`${w.id} has no system of record. Containment claims are unfounded without one.`);
+  if (!w.plainLanguageSummary || w.plainLanguageSummary.length < 20) {
+    err(`workload ${w.id} has no plain language summary. The reader has no way in.`);
+  }
 }
 
 // --- Report -------------------------------------------------------------

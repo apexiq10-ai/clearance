@@ -3,7 +3,7 @@
 import type { InstitutionArchetype } from "../corpus/types";
 import { WORKLOADS_BY_ID } from "../corpus/workloads";
 import type { Phase } from "../lib/sequence";
-import { sequenceClosingLine } from "../lib/sequence";
+import { sequenceClosingLine, sequenceOpeningLine } from "../lib/sequence";
 import { Numeral } from "./Provenance";
 import { spell, usd } from "../lib/format";
 
@@ -34,7 +34,7 @@ export function SequenceView({
 }) {
   if (phases.length === 0) {
     return (
-      <section className="mt-16">
+      <section className="mt-5">
         <p className="max-w-[65ch] font-body text-base leading-relaxed text-slate">
           {sequenceClosingLine(phases)}
         </p>
@@ -47,7 +47,11 @@ export function SequenceView({
   const gridClass = phases.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2";
 
   return (
-    <section className="mt-16">
+    <section className="mt-5">
+      <p className="mb-8 max-w-[65ch] font-serif text-xl leading-tight text-ink sm:text-2xl">
+        {sequenceOpeningLine(phases)}
+      </p>
+
       <div className={`grid gap-px border border-hairline bg-hairline ${gridClass}`}>
         {phases.map((phase) => (
           <div key={phase.step} className="bg-paper px-5 py-6 sm:px-6">
