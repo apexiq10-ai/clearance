@@ -8,9 +8,10 @@
     "start": "next start",
     "prebuild": "tsx scripts/validate-corpus.ts",
     "validate": "tsx scripts/validate-corpus.ts",
-    "test": "tsx lib/compute.test.ts",
+    "test": "tsx lib/compute.test.ts && tsx lib/sequence.test.ts",
     "ledgers": "tsx scripts/print-ledgers.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "sequence": "tsx scripts/print-sequence.ts"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
