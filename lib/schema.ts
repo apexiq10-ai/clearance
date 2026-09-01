@@ -119,22 +119,41 @@ export function pruneRows(response: LedgerResponse, allowedWorkloadIds: Set<stri
 // Contract B, the account brief
 // ---------------------------------------------------------------------------
 
+/**
+ * BRIEF_SPEC_V2 section 6. Six keys, and the model contributes nothing else.
+ *
+ * Every figure, gate, owner, commercial motion and the whole schematic are
+ * computed. What arrives here is language: one position sentence, a name per
+ * play, three objections, the case for now, one action, two questions.
+ */
 export const briefSchema = z.object({
-  institution: z.string().min(1),
-  sellFirst: z.string().min(1),
+  /** One sentence. The structural fact that most determines pace. */
+  position: z.string().min(1),
   /**
-   * One line per phase in the sequence the model was given.
-   *
-   * PHASE_2_BUILD section 4 specifies exactly three. Checkpoint B established
-   * that the credit union and the carrier have two phases, because neither is
-   * blocked by a phase three gate. A schema fixed at three would fail
-   * validation on half the corpus and fall back to the deterministic brief
-   * every time, so the length is bounded rather than fixed and the prompt asks
-   * for one line per phase given.
+   * One per phase the institution actually has. The length is checked against
+   * the sequence in the route, never against a fixed number, because two of the
+   * four archetypes have no phase three.
    */
-  sequence: z.array(z.string().min(1)).min(1).max(3),
-  objection: z.string().min(1),
-  objectionAnswer: z.string().min(1),
+  plays: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+      })
+    )
+    .min(1)
+    .max(3),
+  /** Exactly three, each traceable to a named constraint or gate. */
+  objections: z
+    .array(
+      z.object({
+        quote: z.string().min(1),
+        answer: z.string().min(1),
+      })
+    )
+    .length(3),
+  caseForNow: z.string().min(1),
+  /** One action, on top of the deterministic scaffold, never repeating it. */
+  nextThirtyDays: z.string().min(1),
   questions: z.array(z.string().min(1)).length(2),
 });
 

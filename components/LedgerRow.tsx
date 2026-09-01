@@ -52,7 +52,7 @@ export function LedgerRow({
   const lockedWidth = Math.max(0, (row.ceilingPct - row.permittedPct) * 100);
 
   return (
-    <div className="bg-paper">
+    <div className="bg-paper" id={`ledger-row-${row.workloadId}`}>
       {/*
         The whole row is clickable, but the accessible control is the workload
         name button alone. The row carries provenance triggers, which are

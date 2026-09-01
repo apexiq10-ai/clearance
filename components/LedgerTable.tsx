@@ -162,7 +162,18 @@ export function LedgerTable({
       </div>
 
       <SequenceView phases={phases} institution={institution} />
-      <AccountBrief institution={institution} />
+      <AccountBrief
+        institution={institution}
+        onFocusGate={(gateId) => {
+          // The first row this gate actually blocks, expanded and scrolled to.
+          const row = ledger.rows.find((r) => r.gateIds.includes(gateId));
+          if (!row) return;
+          setExpandedId(row.workloadId);
+          document
+            .getElementById(`ledger-row-${row.workloadId}`)
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+      />
     </main>
   );
 }

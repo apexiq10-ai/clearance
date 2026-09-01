@@ -25,6 +25,22 @@
   --font-serif: var(--font-instrument-serif), Georgia, serif;
 
   --radius-chip: 3px;
+
+  /*
+   * BRIEF_SPEC_V2 section 4. The one deliberate departure from DESIGN_SPEC_V2
+   * in the build, scoped to the brief component and its print output.
+   *
+   * The rest of the interface is a live instrument someone operates. The brief
+   * is a prepared document that gets printed, forwarded, and read cold. It
+   * should read like a document, not a screen.
+   */
+  --color-brief-canvas: #0b0d12;
+  --color-brief-paper: #f4f3ef;
+  --color-brief-ink: #14161c;
+  --color-brief-line: #c9c4b8;
+  --color-brief-signal: #7c52ff;
+  --color-brief-signal-dim: #4a3a80;
+  --color-brief-amber: #c8862b;
 }
 
 html {
@@ -142,6 +158,63 @@ body {
 }
 
 /*
+ * The brief's own devices. Nothing here appears anywhere else in the build.
+ */
+
+/* Four short right-angle marks, the way a technical drawing frames itself. */
+.brief-frame {
+  position: relative;
+}
+.brief-frame::before,
+.brief-frame::after,
+.brief-frame > .brief-corner::before,
+.brief-frame > .brief-corner::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--color-brief-line);
+  border-style: solid;
+  border-width: 0;
+}
+.brief-frame::before {
+  top: 8px;
+  left: 8px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.brief-frame::after {
+  top: 8px;
+  right: 8px;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+.brief-frame > .brief-corner::before {
+  bottom: 8px;
+  left: 8px;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+.brief-frame > .brief-corner::after {
+  bottom: 8px;
+  right: 8px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/*
+ * The one place tracked out uppercase mono is permitted in this build. Here it
+ * signals a prepared instrument rather than dressing up a heading.
+ */
+.brief-header-mark {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-brief-signal-dim);
+}
+
+/*
  * Print. The brief alone, on white, with no interface chrome.
  * The first thing a hiring manager does with a good brief is print it.
  */
@@ -176,6 +249,18 @@ body {
     background: none;
     color: #000;
     padding: 0;
+  }
+
+  /* The near-black canvas disappears. Only the paper panel remains. */
+  .brief-canvas {
+    background: #fff !important;
+    padding: 0 !important;
+  }
+  .brief-frame::before,
+  .brief-frame::after,
+  .brief-frame > .brief-corner::before,
+  .brief-frame > .brief-corner::after {
+    display: none;
   }
 
   a[href]::after {

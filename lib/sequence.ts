@@ -261,7 +261,7 @@ function capitalise(s: string): string {
  * generated, because a one line ask is not worth a model call and a
  * deterministic one cannot drift.
  */
-const OWNER_ROLE: Record<ControlOwner, string> = {
+export const OWNER_ROLE: Record<ControlOwner, string> = {
   "model-risk": "the model risk officer",
   compliance: "the compliance lead",
   "information-security": "the chief information security officer",
