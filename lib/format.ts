@@ -29,6 +29,8 @@ const WORDS = [
 
 export const spell = (n: number) => WORDS[n] ?? String(n);
 
-/** "4 gates" / "1 gate", used under the locked figure on a row. */
-export const gatePhrase = (n: number) =>
-  n === 1 ? "behind 1 gate" : `behind ${n} gates`;
+/**
+ * "4 gates" / "1 gate". Rendered as a state chip, so the word "behind" sits
+ * outside it in prose. A chip carries state, not a sentence.
+ */
+export const gateCountLabel = (n: number) => (n === 1 ? "1 gate" : `${n} gates`);

@@ -155,3 +155,75 @@ export function corpusTrace(institution: InstitutionArchetype): TraceLine[] {
 
   return lines;
 }
+
+// ---------------------------------------------------------------------------
+// Applying a pasted filing
+// ---------------------------------------------------------------------------
+
+export interface DriverOverride {
+  driver: string;
+  value: number;
+  support: string;
+}
+
+/**
+ * The archetype with driver values read out of a pasted document substituted in.
+ *
+ * An overridden driver is marked verified, because a named document states it.
+ * The corpus has no source id for a document the reader pasted, so the note
+ * carries what in the text supports the number and the provenance block renders
+ * that. Drivers the model could not find keep the archetype default and stay
+ * marked as the assumption they always were.
+ */
+export function applyDriverOverrides(
+  institution: InstitutionArchetype,
+  overrides: DriverOverride[]
+): InstitutionArchetype {
+  if (overrides.length === 0) return institution;
+
+  const drivers = { ...institution.drivers };
+  for (const override of overrides) {
+    const key = override.driver as keyof typeof drivers;
+    if (!(key in drivers)) continue;
+    if (!Number.isFinite(override.value) || override.value < 0) continue;
+    drivers[key] = {
+      ...drivers[key],
+      value: override.value,
+      provenance: {
+        class: "verified",
+        note: `Read from the pasted document. ${override.support}`,
+      },
+    };
+  }
+
+  return { ...institution, drivers };
+}
+
+/**
+ * The ledger for percentages a model returned.
+ *
+ * Gate lists are recomputed here from the corpus regardless of what arrived,
+ * so constraint 9 holds on the client as well as in the route.
+ */
+export function ledgerFromRows(
+  institution: InstitutionArchetype,
+  rows: Array<{
+    workloadId: string;
+    permittedPct: number;
+    ceilingPct: number;
+    reasoning: string;
+  }>,
+  economics: EconomicsConstants = ECONOMICS
+) {
+  const inputs: RowInput[] = rows
+    .filter((r) => WORKLOADS_BY_ID[r.workloadId])
+    .map((r) => ({
+      workloadId: r.workloadId,
+      permittedPct: r.permittedPct,
+      ceilingPct: r.ceilingPct,
+      gateIds: blockingGatesFor(r.workloadId, institution),
+      reasoning: r.reasoning,
+    }));
+
+  return computeLedger(institution, WORKLOADS_BY_ID, economics, inputs);
+}

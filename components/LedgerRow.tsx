@@ -1,5 +1,6 @@
 "use client";
 
+import { Drilldown } from "./Drilldown";
 import type {
   EconomicsConstants,
   InstitutionArchetype,
@@ -8,7 +9,7 @@ import type {
 } from "../corpus/types";
 import { Numeral } from "./Provenance";
 import { useCountUp } from "../lib/motion";
-import { gatePhrase, pct, usd } from "../lib/format";
+import { gateCountLabel, pct, usd } from "../lib/format";
 import {
   lockedValueProvenance,
   permittedValueProvenance,
@@ -24,114 +25,134 @@ const TIER_LABEL: Record<WorkloadArchetype["riskTier"], string> = {
 /**
  * One row. One horizontal extent divided into what you can capture today and
  * what is sitting behind a control.
+ *
+ * The row draws no border of its own. It sits in a gap-px grid, where the gap
+ * is the rule. That is how a financial statement gets its rules without
+ * drawing a line on any cell.
  */
 export function LedgerRow({
   row,
   workload,
   institution,
   economics,
-  landed,
+  expanded,
+  onToggle,
 }: {
   row: LedgerRowData;
   workload: WorkloadArchetype;
   institution: InstitutionArchetype;
   economics: EconomicsConstants;
-  landed: boolean;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
-  const permittedValue = useCountUp(row.permittedValueUsd, landed);
-  const lockedValue = useCountUp(row.lockedValueUsd, landed);
+  const permittedValue = useCountUp(row.permittedValueUsd, true);
+  const lockedValue = useCountUp(row.lockedValueUsd, true);
 
   const permittedWidth = row.permittedPct * 100;
   const lockedWidth = Math.max(0, (row.ceilingPct - row.permittedPct) * 100);
 
   return (
-    <li
-      className="border-b border-rule px-3 py-6 transition-colors hover:bg-surface"
-      style={{
-        opacity: landed ? 1 : 0,
-        transition: "opacity 240ms ease-out, background-color 120ms ease-out",
-      }}
-    >
+    <div className="bg-paper">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        className={`block w-full px-5 py-6 text-left transition-colors sm:px-6 ${
+          expanded ? "bg-shade" : "hover:bg-shade"
+        }`}
+      >
       <div className="flex items-baseline justify-between gap-6">
-        <h3 className="font-sans text-17 font-medium leading-snug text-ink">
+        <h3 className="font-sans text-base font-semibold leading-tight text-ink sm:text-lg">
           {workload.name}
         </h3>
-        <span className="shrink-0 font-mono text-13 text-ink-muted">
-          {TIER_LABEL[workload.riskTier]}
-        </span>
+        <span className="chip shrink-0">{TIER_LABEL[workload.riskTier]}</span>
       </div>
 
-      <p className="mt-1.5 max-w-3xl font-prose text-13 leading-relaxed text-ink-muted sm:text-15">
+      <p className="mt-2 max-w-[65ch] font-body text-sm leading-relaxed text-slate">
         {workload.operatorNote}
       </p>
 
       <div className="mt-5 flex items-center gap-5">
-        <div className="flex h-2.5 flex-1 overflow-hidden">
+        <div className="flex h-1.5 flex-1">
           <div
-            className="bg-permitted"
+            className="bg-violet"
             style={{ width: `${permittedWidth}%`, transition: "width 600ms ease-out" }}
           />
           <div
-            className="hatch-locked"
+            className="bar-locked"
             style={{ width: `${lockedWidth}%`, transition: "width 600ms ease-out" }}
           />
-          <div className="flex-1 bg-rule" />
+          <div className="flex-1 bg-hairline" />
         </div>
-        <div className="shrink-0 font-mono text-13">
+        <div className="shrink-0 font-mono text-xs leading-tight">
           <Numeral provenance={workload.containmentPermittedToday.provenance}>
-            <span className="text-permitted">{pct(row.permittedPct)}</span>
+            <span className="text-ink">{pct(row.permittedPct)}</span>
           </Numeral>
-          <span className="mx-1 text-ink-faint">/</span>
+          <span className="mx-1 text-slate">/</span>
           <Numeral provenance={workload.containmentCeiling.provenance}>
-            <span className="text-ink-muted">{pct(row.ceilingPct)}</span>
+            <span className="text-slate">{pct(row.ceilingPct)}</span>
           </Numeral>
         </div>
       </div>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-        <div className="font-mono text-15">
+        <div className="font-mono text-base leading-tight">
           <Numeral
             provenance={permittedValueProvenance(workload, economics, row)}
             align="left"
           >
             <span className="text-ink">{usd(permittedValue)}</span>
           </Numeral>
-          <span className="ml-2 font-prose text-13 text-ink-muted">today</span>
+          <span className="ml-2 font-body text-sm text-slate">today</span>
         </div>
 
-        <div className="font-mono text-15">
+        <div className="font-mono text-base leading-tight">
           {row.gateIds.length === 0 ? (
             <>
               <Numeral provenance={lockedValueProvenance(workload, economics, row)}>
-                <span className="text-ink-faint">{usd(0)}</span>
+                <span className="text-slate">{usd(0)}</span>
               </Numeral>
-              <span className="ml-2 font-prose text-13 text-ink-muted">
+              <span className="ml-2 font-body text-sm text-slate">
                 no gate holds this workload
               </span>
             </>
           ) : (
             <>
               <Numeral provenance={lockedValueProvenance(workload, economics, row)}>
-                <span className="text-locked">{usd(lockedValue)}</span>
+                <span className="text-violet">{usd(lockedValue)}</span>
               </Numeral>
-              <span className="ml-2 font-prose text-13 text-ink-muted">
-                {gatePhrase(row.gateIds.length)}
-              </span>
+              <span className="ml-2 font-body text-sm text-slate">behind</span>{" "}
+              <span className="chip">{gateCountLabel(row.gateIds.length)}</span>
             </>
           )}
         </div>
       </div>
 
-      <div className="mt-3 font-mono text-13 text-ink-faint">
+      <div className="mt-3 font-mono text-xs leading-tight text-slate">
+        <span className="tnum">
+          {Math.round(row.annualVolumeLow).toLocaleString("en-US")} contacts a year
+        </span>
+      </div>
+      </button>
+
+      {/* The volume marker sits outside the button, because a hover block
+          inside a button is a control inside a control. */}
+      <div className="px-5 pb-4 font-mono text-xs leading-tight text-slate sm:px-6">
         <Numeral
           provenance={volumeProvenance(workload, institution, row)}
           align="left"
         >
-          <span>
-            {Math.round(row.annualVolumeLow).toLocaleString("en-US")} contacts a year
-          </span>
+          <span>how that volume is derived</span>
         </Numeral>
       </div>
-    </li>
+
+      {expanded ? (
+        <Drilldown
+          workload={workload}
+          institution={institution}
+          blockingGateIds={row.gateIds}
+        />
+      ) : null}
+    </div>
   );
 }

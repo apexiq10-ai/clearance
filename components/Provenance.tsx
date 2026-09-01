@@ -51,18 +51,18 @@ export function Provenance({
         type="button"
         aria-describedby={id}
         aria-label={`${LABEL[provenance.class]}. ${detail}`}
-        className="ml-1 cursor-help font-mono text-13 leading-none text-ink-faint transition-colors hover:text-ink-muted focus-visible:text-ink-muted"
+        className="ml-1 cursor-help font-mono text-xs leading-none text-slate transition-colors hover:text-violet focus-visible:text-violet"
       >
         {marker}
       </button>
       <span
         id={id}
         role="note"
-        className={`pointer-events-none absolute top-full z-30 mt-2 hidden w-[19rem] max-w-[75vw] border border-rule bg-surface p-3 text-left font-prose text-13 leading-relaxed text-ink-muted group-hover:block group-focus-within:block ${
+        className={`pointer-events-none absolute top-full z-30 mt-2 hidden w-[19rem] max-w-[75vw] border border-hairline bg-shade p-3 text-left font-body text-xs leading-relaxed text-slate group-hover:block group-focus-within:block ${
           align === "right" ? "right-0" : "left-0"
         }`}
       >
-        <span className="mb-1 block font-mono text-13 text-ink">
+        <span className="mb-1 block font-mono text-xs text-ink">
           {LABEL[provenance.class]}
           {provenance.volatile ? ", confirm before use" : ""}
         </span>

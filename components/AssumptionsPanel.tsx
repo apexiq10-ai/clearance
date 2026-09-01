@@ -154,14 +154,14 @@ export function AssumptionsPanel({
     : 0;
 
   return (
-    <div className="mt-6 border-t border-rule-strong pt-6">
+    <div className="mt-6 border-t border-hairline bg-shade px-5 py-6 sm:px-6">
       <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
         {FIELDS.map((field) => {
           const inert = inertNote(field.key, workloads);
           return (
             <div key={field.key}>
               <label className="flex items-baseline justify-between gap-4">
-                <span className="font-sans text-13 font-medium text-ink">
+                <span className="font-sans text-sm font-semibold leading-tight text-ink">
                   {field.label}
                 </span>
                 <input
@@ -172,10 +172,10 @@ export function AssumptionsPanel({
                     const v = Number.parseFloat(e.target.value);
                     if (Number.isFinite(v) && v >= 0) onChange(field.write(economics, v));
                   }}
-                  className="field w-24 shrink-0 py-1 text-right text-15"
+                  className="field w-24 shrink-0 py-1 text-right text-base"
                 />
               </label>
-              <p className="mt-2 max-w-md font-prose text-13 leading-relaxed text-ink-muted">
+              <p className="mt-2 max-w-[65ch] font-body text-xs leading-relaxed text-slate">
                 {inert ?? ""}
                 {inert ? " " : ""}
                 <Provenance provenance={provenanceFor(field.key, economics)} align="left" />
@@ -185,11 +185,11 @@ export function AssumptionsPanel({
         })}
       </div>
 
-      <div className="mt-8 flex flex-wrap items-baseline justify-between gap-4 border-t border-rule pt-5">
-        <p className="font-mono text-13 text-ink-muted">
+      <div className="mt-8 flex flex-wrap items-baseline justify-between gap-4 border-t border-hairline pt-5">
+        <p className="font-mono text-xs leading-tight text-slate">
           value per contact{" "}
           <span className="tnum text-ink">${perContact.toFixed(2)}</span>
-          <span className="ml-2 text-ink-faint">
+          <span className="ml-2 text-slate">
             low contact cost less high contained cost
           </span>
         </p>
@@ -197,14 +197,14 @@ export function AssumptionsPanel({
           <button
             type="button"
             onClick={onReset}
-            className="font-sans text-13 text-ink-muted underline decoration-rule-strong underline-offset-4 transition-colors hover:text-ink"
+            className="font-sans text-sm text-slate underline decoration-hairline underline-offset-4 transition-colors hover:text-violet"
           >
             Put the corpus defaults back
           </button>
         ) : null}
       </div>
 
-      <p className="mt-6 font-prose text-13 text-ink-muted">
+      <p className="mt-6 max-w-[65ch] font-body text-sm leading-relaxed text-slate">
         Every assumption here is editable, and none of them are mine to make for
         you.
       </p>

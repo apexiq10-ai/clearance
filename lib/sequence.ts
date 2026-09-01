@@ -16,6 +16,7 @@
 
 import type {
   ControlGate,
+  ControlOwner,
   ControlPhase,
   EconomicsConstants,
   InstitutionArchetype,
@@ -230,4 +231,52 @@ export function sequenceClosingLine(phases: Phase[]): string {
 
 function capitalise(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ---------------------------------------------------------------------------
+// The closing ask on a drill-down
+// ---------------------------------------------------------------------------
+
+/**
+ * What to ask, per control owner. Templated deterministically rather than
+ * generated, because a one line ask is not worth a model call and a
+ * deterministic one cannot drift.
+ */
+const OWNER_ROLE: Record<ControlOwner, string> = {
+  "model-risk": "the model risk officer",
+  compliance: "the compliance lead",
+  "information-security": "the chief information security officer",
+  "fraud-operations": "the head of fraud operations",
+  legal: "the general counsel's office",
+  "servicing-operations": "the servicing lead",
+  "vendor-management": "the vendor management lead",
+  "core-platform": "the core platform owner",
+};
+
+const OWNER_QUESTION: Record<ControlOwner, string> = {
+  "model-risk": "when the committee next sits",
+  compliance: "which approvals are already on the examination calendar",
+  "information-security": "what evidence the voice channel currently writes to the interaction record",
+  "fraud-operations": "where the non-disclosure boundary is enforced today",
+  legal: "how consent is resolved to the contact rather than the account",
+  "servicing-operations": "which notice events the floor tracks by hand today",
+  "vendor-management": "what the contract says about subprocessors and data residency",
+  "core-platform": "what the core vendor's transactional roadmap looks like",
+};
+
+/**
+ * The line that closes a row expansion. Built from the highest-phase blocking
+ * gate on that row, because the last gate to clear is the one that sets the
+ * date, and the person who owns it is the person worth asking.
+ */
+export function closingAsk(blockingGateIds: string[]): string | undefined {
+  if (blockingGateIds.length === 0) return undefined;
+
+  const gates = blockingGateIds
+    .map((id) => GATES_BY_ID[id])
+    .filter((g): g is NonNullable<typeof g> => Boolean(g));
+  if (gates.length === 0) return undefined;
+
+  const latest = gates.reduce((a, b) => (b.phase > a.phase ? b : a));
+  return `Ask ${OWNER_ROLE[latest.owner]} who owns ${latest.name.toLowerCase()} and ${OWNER_QUESTION[latest.owner]}.`;
 }

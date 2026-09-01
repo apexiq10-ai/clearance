@@ -1,25 +1,29 @@
 import type { Metadata } from "next";
 import {
-  DM_Sans,
+  Archivo,
   IBM_Plex_Mono,
+  IBM_Plex_Sans,
   Instrument_Serif,
-  Outfit,
 } from "next/font/google";
 import "./globals.css";
 
-const instrumentSerif = Instrument_Serif({
+/** Headings and row names. */
+const archivo = Archivo({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-instrument-serif",
+  weight: ["500", "600"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
-const outfit = Outfit({
+/** Body prose and method text. The default. */
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  weight: ["400", "500"],
+  variable: "--font-plex-sans",
   display: "swap",
 });
 
+/** All numerals, all citations, all rail findings, all chips. */
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -27,9 +31,11 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+/** The thesis line and the two totals only. */
+const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
+  weight: "400",
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
@@ -45,7 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrumentSerif.variable} ${outfit.variable} ${plexMono.variable} ${dmSans.variable}`}
+      className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable} ${instrumentSerif.variable}`}
     >
       <body>{children}</body>
     </html>

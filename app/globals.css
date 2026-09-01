@@ -1,43 +1,47 @@
 @import "tailwindcss";
 
+/*
+ * DESIGN_SPEC_V2. Nine colour tokens and every one carries a job.
+ * If a colour appears that does not encode a state, remove it.
+ *
+ * There is no green in this interface. Version one used green for permitted.
+ * Permitted and locked are now the same violet in two treatments, which is the
+ * whole visual argument.
+ */
 @theme {
-  --color-bg: #050508;
-  --color-surface: #0b0b11;
-  --color-rule: #1a1a24;
-  --color-rule-strong: #2a2a38;
-  --color-ink: #ededf2;
-  --color-ink-muted: #8a8a9a;
-  --color-ink-faint: #4a4a58;
+  --color-paper: #ffffff;
+  --color-canvas: #f7f6fa;
+  --color-shade: #efecf5;
+  --color-hairline: #e4e1ec;
+  --color-ink: #10022c;
+  --color-slate: #5f5a6e;
+  --color-violet: #7c52ff;
+  --color-violet-tint: #f1ecff;
+  --color-flag: #c0244a;
 
-  --color-permitted: #10f0a0;
-  --color-locked: #8b5cf6;
-  --color-rail-permit: #3b82f6;
-  --color-rail-block: #f0546a;
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-body: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
 
-  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-outfit), system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
-  --font-prose: var(--font-dm-sans), system-ui, sans-serif;
-
-  --text-13: 13px;
-  --text-15: 15px;
-  --text-17: 17px;
-  --text-21: 21px;
-  --text-28: 28px;
-  --text-44: 44px;
-  --text-72: 72px;
+  --radius-chip: 3px;
 }
 
 html {
-  background-color: var(--color-bg);
-  color-scheme: dark;
+  background-color: var(--color-canvas);
+  color-scheme: light;
 }
 
 body {
-  background-color: var(--color-bg);
+  background-color: var(--color-canvas);
   color: var(--color-ink);
-  font-family: var(--font-prose);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Border radius is 0 everywhere except state chips. */
+* {
+  border-radius: 0;
 }
 
 /* Numerals line up down a column or they are not numerals. */
@@ -47,41 +51,71 @@ body {
 }
 
 /*
- * The signature move. Locked money looks like money you can see through:
- * the fill sits at 45 percent, and a two pixel diagonal hatch cuts the page
- * background back through it.
+ * The one bold move. Permitted is solid violet, locked is the same violet you
+ * can see through. Locked money looks like money behind glass.
  */
-.hatch-locked {
-  background-color: color-mix(in srgb, var(--color-locked) 45%, transparent);
+.bar-locked {
+  background-color: var(--color-violet-tint);
   background-image: repeating-linear-gradient(
     45deg,
     transparent 0px,
     transparent 2px,
-    color-mix(in srgb, var(--color-bg) 78%, transparent) 2px,
-    color-mix(in srgb, var(--color-bg) 78%, transparent) 4px
+    color-mix(in srgb, var(--color-violet) 35%, transparent) 2px,
+    color-mix(in srgb, var(--color-violet) 35%, transparent) 4px
   );
 }
 
-/* Keyboard path is visible, everywhere, at the permit blue. */
+/*
+ * Emphasis device one. Mono uppercase, violet tint fill, violet text.
+ * Reserved for state: tier 1, phase 2, permit, block, 4 gates.
+ * A chip encodes information and sits inline. An eyebrow decorates and sits
+ * above a heading, and remains forbidden.
+ */
+.chip {
+  display: inline-block;
+  border-radius: var(--radius-chip);
+  background-color: var(--color-violet-tint);
+  color: var(--color-violet);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.25;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  padding: 0.1875rem 0.375rem;
+  white-space: nowrap;
+}
+
+.chip-flag {
+  background-color: color-mix(in srgb, var(--color-flag) 10%, transparent);
+  color: var(--color-flag);
+}
+
+.chip-quiet {
+  background-color: var(--color-shade);
+  color: var(--color-slate);
+}
+
+/* Quality floor. Focus ring is 2px violet at 2px offset, everywhere. */
 :focus-visible {
-  outline: 2px solid var(--color-rail-permit);
+  outline: 2px solid var(--color-violet);
   outline-offset: 2px;
 }
 
 /* Editable assumption fields. A bottom hairline and nothing else. */
 .field {
   background: transparent;
-  border-bottom: 1px solid var(--color-rule-strong);
+  border-bottom: 1px solid var(--color-hairline);
   color: var(--color-ink);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  transition: border-color 0.2s ease-out;
 }
 .field:hover {
-  border-bottom-color: var(--color-ink-faint);
+  border-bottom-color: var(--color-violet);
 }
 .field:focus {
   outline: none;
-  border-bottom-color: var(--color-rail-permit);
+  border-bottom-color: var(--color-violet);
 }
 .field::-webkit-outer-spin-button,
 .field::-webkit-inner-spin-button {
@@ -93,6 +127,10 @@ body {
   -moz-appearance: textfield;
 }
 
+/*
+ * Motion. The reasoning rail is the only orchestrated moment in the interface.
+ * Everything else is still.
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -100,5 +138,47 @@ body {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+/*
+ * Print. The brief alone, on white, with no interface chrome.
+ * The first thing a hiring manager does with a good brief is print it.
+ */
+@media print {
+  html,
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  /* Everything that is not the brief, and every ancestor's siblings, goes. */
+  body > * {
+    display: none;
+  }
+
+  body:has(.account-brief) > *:has(.account-brief) {
+    display: block;
+  }
+
+  main > *:not(:has(.account-brief)) {
+    display: none;
+  }
+
+  .account-brief {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+  }
+
+  .account-brief .chip {
+    background: none;
+    color: #000;
+    padding: 0;
+  }
+
+  a[href]::after {
+    content: "";
   }
 }
