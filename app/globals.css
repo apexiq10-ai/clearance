@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #050508;
+  --color-surface: #0b0b11;
+  --color-rule: #1a1a24;
+  --color-rule-strong: #2a2a38;
+  --color-ink: #ededf2;
+  --color-ink-muted: #8a8a9a;
+  --color-ink-faint: #4a4a58;
+
+  --color-permitted: #10f0a0;
+  --color-locked: #8b5cf6;
+  --color-rail-permit: #3b82f6;
+  --color-rail-block: #f0546a;
+
+  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+  --font-prose: var(--font-dm-sans), system-ui, sans-serif;
+
+  --text-13: 13px;
+  --text-15: 15px;
+  --text-17: 17px;
+  --text-21: 21px;
+  --text-28: 28px;
+  --text-44: 44px;
+  --text-72: 72px;
+}
+
+html {
+  background-color: var(--color-bg);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-prose);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numerals line up down a column or they are not numerals. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/*
+ * The signature move. Locked money looks like money you can see through:
+ * the fill sits at 45 percent, and a two pixel diagonal hatch cuts the page
+ * background back through it.
+ */
+.hatch-locked {
+  background-color: color-mix(in srgb, var(--color-locked) 45%, transparent);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0px,
+    transparent 2px,
+    color-mix(in srgb, var(--color-bg) 78%, transparent) 2px,
+    color-mix(in srgb, var(--color-bg) 78%, transparent) 4px
+  );
+}
+
+/* Keyboard path is visible, everywhere, at the permit blue. */
+:focus-visible {
+  outline: 2px solid var(--color-rail-permit);
+  outline-offset: 2px;
+}
+
+/* Editable assumption fields. A bottom hairline and nothing else. */
+.field {
+  background: transparent;
+  border-bottom: 1px solid var(--color-rule-strong);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.field:hover {
+  border-bottom-color: var(--color-ink-faint);
+}
+.field:focus {
+  outline: none;
+  border-bottom-color: var(--color-rail-permit);
+}
+.field::-webkit-outer-spin-button,
+.field::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.field[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
