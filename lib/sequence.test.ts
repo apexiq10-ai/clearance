@@ -294,7 +294,10 @@ test("a phase that releases nothing explains why, naming the later phase", () =>
 
   assert.equal(first.valueReleasedUsd, 0);
   assert.ok(first.releaseNote, "a zero release phase must carry a note");
-  assert.match(first.releaseNote!, /Releases nothing until phase 2 clears alongside it\./);
+  // The note speaks in the step numbering the reader sees, not the corpus
+  // gate.phase key, so the two never contradict each other on screen.
+  assert.match(first.releaseNote!, /Releases nothing until step 2 clears alongside it\./);
+  assert.doesNotMatch(first.releaseNote!, /phase \d/);
   assert.ok(!first.releaseNote!.includes("undefined"));
 });
 
@@ -315,19 +318,22 @@ test("a phase that releases money carries no note", () => {
   }
 });
 
-test("the note never points at a phase that is not later than itself", () => {
+test("the note never points at a step that is not later than itself", () => {
+  let checked = 0;
   for (const institution of INSTITUTIONS) {
     const { phases } = sequenceFor(institution);
     for (const phase of phases) {
-      const match = phase.releaseNote?.match(/phase (\d)/);
-      if (match) {
-        assert.ok(
-          Number(match[1]) > phase.phase,
-          `${institution.id} phase ${phase.phase} waits on a phase at or before itself`
-        );
-      }
+      const match = phase.releaseNote?.match(/step (\d)/);
+      if (!match) continue;
+      checked++;
+      assert.ok(
+        Number(match[1]) > phase.step,
+        `${institution.id} step ${phase.step} waits on a step at or before itself`
+      );
     }
   }
+  // Guard against the assertion passing because it never ran.
+  assert.ok(checked > 0, "no release note referenced a later step");
 });
 
 // --- the closing line ------------------------------------------------------
@@ -362,4 +368,45 @@ test("the closing line reports two phases where there is no phase three", () => 
 
 test("the closing line survives an institution with nothing blocking", () => {
   assert.match(sequenceClosingLine([]), /already at its ceiling/);
+});
+
+
+// --- display step numbering --------------------------------------------------
+
+test("every institution shows a step 1, whatever its corpus phases are", () => {
+  for (const institution of INSTITUTIONS) {
+    const { phases } = sequenceFor(institution);
+    assert.equal(phases[0]!.step, 1, `${institution.id} has no step 1`);
+  }
+});
+
+test("steps are sequential and count over the rendered phases only", () => {
+  for (const institution of INSTITUTIONS) {
+    const { phases } = sequenceFor(institution);
+    assert.deepEqual(
+      phases.map((p) => p.step),
+      phases.map((_, i) => i + 1),
+      `${institution.id} step numbering is not sequential`
+    );
+    for (const phase of phases) {
+      assert.equal(phase.stepCount, phases.length, `${institution.id} stepCount`);
+    }
+  }
+});
+
+test("the corpus gate.phase key is untouched by display numbering", () => {
+  // The credit union and the carrier are the cases that matter: their first
+  // column is corpus phase 2, and it must still be phase 2 in the logic.
+  const creditUnion = sequenceFor(INSTITUTIONS_BY_ID["credit-union"]!).phases;
+  assert.deepEqual(creditUnion.map((p) => p.phase), [2, 3]);
+  assert.deepEqual(creditUnion.map((p) => p.step), [1, 2]);
+
+  for (const institution of INSTITUTIONS) {
+    const { phases } = sequenceFor(institution);
+    for (const phase of phases) {
+      for (const gate of phase.gates) {
+        assert.equal(gate.phase, phase.phase, "gate landed in the wrong column");
+      }
+    }
+  }
 });

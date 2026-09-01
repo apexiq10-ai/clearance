@@ -17,7 +17,13 @@ import { encodeEvent, parseTraceLine } from "../../../lib/stream";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MODEL = "claude-sonnet-4-6";
+/**
+ * This path classifies a segment and reads driver values out of a pasted
+ * document. Both are well inside a faster model's capability, and on this path
+ * speed matters more than depth. The account brief stays on the larger model,
+ * because synthesis is the part that benefits from it.
+ */
+const MODEL = "claude-haiku-4-5-20251001";
 
 /**
  * The model request is cancelled server-side at this point, not merely waited
@@ -171,7 +177,8 @@ function buildUserMessage(
     : `{ "rows": [{ "workloadId": string, "permittedPct": number, "ceilingPct": number, "gateIds": string[], "reasoning": string }] }`;
 
   parts.push(
-    `The JSON object has exactly this shape. The top level key holding the ledger is "rows". Do not rename it, do not nest it, and do not add keys that are not listed here.\n\n${shape}`
+    `The JSON object has exactly this shape. The top level key holding the ledger is "rows". Do not rename it, do not nest it, and do not add keys that are not listed here.\n\n${shape}\n\n` +
+      `permittedPct and ceilingPct are decimal fractions between 0 and 1, not whole percentages. Forty five percent is 0.45, not 45. Any value above 1 is invalid.`
   );
 
   parts.push(

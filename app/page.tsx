@@ -58,6 +58,11 @@ export default function Page() {
 
   const reduced = useReducedMotion();
   const requestId = useRef(0);
+  // Which institution the local trace replay has already been started for.
+  const replayedFor = useRef<string | null>(null);
+  // True once the model has streamed a line of its own, so the local replay
+  // does not overwrite it.
+  const [modelTrace, setModelTrace] = useState(false);
   // The in flight request, so a new one can cancel it rather than racing it.
   const inFlight = useRef<AbortController | null>(null);
   const [pending, setPending] = useState(false);
@@ -102,6 +107,8 @@ export default function Page() {
     setPayload(null);
     setNotice(null);
     setTrace([]);
+    setModelTrace(false);
+    replayedFor.current = null;
     setFiling("");
     setScreen("ledger");
   }
@@ -117,6 +124,8 @@ export default function Page() {
     setPending(true);
     setScreen("building");
     setTrace([]);
+    setModelTrace(false);
+    replayedFor.current = null;
     setPayload(null);
     setNotice(null);
 
@@ -134,6 +143,7 @@ export default function Page() {
       await readEventStream(response, (event) => {
         if (requestId.current !== mine) return;
         if (event.kind === "trace") {
+          setModelTrace(true);
           setTrace((t) => [...t, { label: event.label, value: event.value }]);
         } else if (event.kind === "result") {
           received = event.payload as LedgerPayload;
@@ -182,10 +192,21 @@ export default function Page() {
     setScreen("ledger");
   }
 
-  // If the model returned no trace at all, play the corpus trace so the rail
-  // still resolves. Real observations either way, never narration.
+  /**
+   * Replay the corpus trace locally when the model did not supply one.
+   *
+   * trace.length must not be a dependency here. It used to be both a dependency
+   * and the early return guard, so the first timer firing changed the length,
+   * re-ran the effect, and the cleanup cancelled every remaining timer before
+   * the guard returned. Exactly one line ever rendered. A ref records which
+   * institution the replay has started for, so the timer chain is created once
+   * and runs to completion.
+   */
   useEffect(() => {
-    if (screen !== "ledger" || trace.length > 0 || !institution) return;
+    if (screen !== "ledger" || !institution || modelTrace) return;
+    if (replayedFor.current === institution.id) return;
+    replayedFor.current = institution.id;
+
     const lines = corpusTrace(institution);
     if (reduced) {
       setTrace(lines);
@@ -195,7 +216,7 @@ export default function Page() {
       setTimeout(() => setTrace(lines.slice(0, i + 1)), TRACE_INTERVAL_MS * (i + 1))
     );
     return () => timers.forEach(clearTimeout);
-  }, [screen, trace.length, institution, reduced]);
+  }, [screen, institution, modelTrace, reduced]);
 
   function startOver() {
     requestId.current++;

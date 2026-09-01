@@ -50,14 +50,19 @@ export function SequenceView({
     <section className="mt-16">
       <div className={`grid gap-px border border-hairline bg-hairline ${gridClass}`}>
         {phases.map((phase) => (
-          <div key={phase.phase} className="bg-paper px-5 py-6 sm:px-6">
+          <div key={phase.step} className="bg-paper px-5 py-6 sm:px-6">
             <div className="flex items-baseline gap-3">
               <span className="font-serif text-3xl leading-none text-ink">
-                {phase.phase}
+                {phase.step}
               </span>
-              <span className="font-mono text-xs leading-tight text-slate">
-                Cumulative: weeks {phase.weeksLow} to {phase.weeksHigh}
-              </span>
+              <div>
+                <p className="font-sans text-sm font-semibold leading-tight text-ink">
+                  Step {phase.step} of {phase.stepCount}
+                </p>
+                <p className="mt-0.5 font-mono text-xs leading-tight text-slate">
+                  Cumulative: weeks {phase.weeksLow} to {phase.weeksHigh}
+                </p>
+              </div>
             </div>
 
             <h3 className="mt-4 font-sans text-base font-semibold leading-tight text-ink">

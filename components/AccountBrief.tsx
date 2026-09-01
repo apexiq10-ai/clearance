@@ -7,6 +7,8 @@ import { readEventStream } from "../lib/stream";
 
 interface Deterministic {
   institutionLine: string;
+  /** One headline dollar figure, for the condensed email body. */
+  headlineLine: string;
   sequenceLines: string[];
   closingLine: string;
 }
@@ -31,14 +33,12 @@ export function AccountBrief({
   const [brief, setBrief] = useState<Brief | null>(null);
   const [deterministic, setDeterministic] = useState<Deterministic | null>(null);
   const [note, setNote] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   async function build() {
     setStatus("building");
     setPartial({});
     setBrief(null);
     setNote(null);
-    setCopied(false);
 
     try {
       const response = await fetch("/api/brief", {
@@ -89,10 +89,8 @@ export function AccountBrief({
     );
   }
 
-  const copyText = briefAsText(institution, deterministic, brief);
-
   return (
-    <section className="account-brief mt-16 border border-hairline bg-paper px-5 py-8 sm:px-8">
+    <section className="account-brief mt-16 border border-hairline bg-paper px-5 py-8 sm:px-10">
       <h2 className="font-sans text-xl font-semibold leading-tight text-ink">
         Account brief
       </h2>
@@ -155,26 +153,30 @@ export function AccountBrief({
           writing
         </p>
       ) : (
-        <div className="mt-8 flex gap-6 border-t border-hairline pt-5 print:hidden">
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard?.writeText(copyText).then(
-                () => setCopied(true),
-                () => setCopied(false)
-              );
-            }}
-            className="font-sans text-sm text-slate underline decoration-hairline underline-offset-4 transition-colors hover:text-violet"
-          >
-            {copied ? "Copied" : "Copy"}
-          </button>
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="font-sans text-sm text-slate underline decoration-hairline underline-offset-4 transition-colors hover:text-violet"
-          >
-            Print
-          </button>
+        <div className="mt-8 grid gap-6 border-t border-hairline pt-5 sm:grid-cols-2 print:hidden">
+          <div>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="font-sans text-base font-semibold leading-tight text-ink transition-colors hover:text-violet"
+            >
+              Download PDF
+            </button>
+            <p className="mt-1.5 max-w-[45ch] font-body text-xs leading-relaxed text-slate">
+              Opens your browser&rsquo;s print dialog. Choose Save as PDF.
+            </p>
+          </div>
+          <div>
+            <a
+              href={mailtoHref(institution, deterministic, brief)}
+              className="font-sans text-base font-semibold leading-tight text-ink transition-colors hover:text-violet"
+            >
+              Email brief
+            </a>
+            <p className="mt-1.5 max-w-[45ch] font-body text-xs leading-relaxed text-slate">
+              Opens your email client with a summary. Attach the downloaded PDF.
+            </p>
+          </div>
         </div>
       )}
     </section>
@@ -194,40 +196,49 @@ function Section({
       <h3 className="font-sans text-lg font-semibold leading-tight text-ink">
         {title}
       </h3>
-      <div className="mt-2 max-w-[65ch] font-body text-base leading-relaxed text-slate">
+      {/*
+        Wider than the app's 65ch prose default. The brief is a denser document
+        read in one pass, so it runs closer to the panel edge while staying
+        inside a readable line length.
+      */}
+      <div className="mt-2 max-w-[85ch] font-body text-base leading-relaxed text-slate">
         {children}
       </div>
     </div>
   );
 }
 
-function briefAsText(
+/**
+ * A condensed plain text summary for the mail client: who they are, the play,
+ * and one headline figure.
+ *
+ * A browser cannot attach a file to a mailto link, so nothing here implies one
+ * is attached. The caption tells the reader to attach the PDF themselves.
+ */
+function mailtoHref(
   institution: InstitutionArchetype,
   deterministic: Deterministic | null,
   brief: Brief | null
 ): string {
-  const lines: string[] = [`Account brief. ${institution.name}.`, ""];
+  const subject = `Account brief. ${institution.name}`;
 
-  lines.push("THE INSTITUTION");
-  lines.push(brief?.institution ?? deterministic?.institutionLine ?? "");
-  lines.push("");
+  const body: string[] = [
+    brief?.institution ?? deterministic?.institutionLine ?? institution.profile,
+    "",
+  ];
 
-  if (brief) {
-    lines.push("WHAT TO SELL FIRST", brief.sellFirst, "");
+  if (brief?.sellFirst) {
+    body.push("What to sell first", brief.sellFirst, "");
   }
 
-  lines.push("THE SEQUENCE");
-  for (const line of brief?.sequence ?? deterministic?.sequenceLines ?? []) {
-    lines.push(line);
+  if (deterministic?.headlineLine) {
+    body.push(deterministic.headlineLine);
   }
-  lines.push("");
-
-  if (brief) {
-    lines.push("THE OBJECTION YOU WILL GET", brief.objection, brief.objectionAnswer, "");
-    lines.push("TWO QUESTIONS FOR THE NEXT CALL", ...brief.questions, "");
+  if (deterministic?.closingLine) {
+    body.push(deterministic.closingLine);
   }
 
-  if (deterministic) lines.push(deterministic.closingLine);
-
-  return lines.join("\n");
+  return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+    body.join("\n")
+  )}`;
 }

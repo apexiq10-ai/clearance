@@ -52,6 +52,15 @@ export interface Phase {
   gates: ControlGate[];
   /** Workloads whose last blocking gate clears in this phase. */
   unlockedWorkloadIds: string[];
+  /**
+   * Display only, one based, counted over the phases this institution actually
+   * has. The credit union and the carrier are blocked by no phase one gate, so
+   * their first column carries gate.phase 2 and would read as "step 2" with no
+   * step 1 above it. `phase` stays the corpus key that drives the logic.
+   */
+  step: number;
+  /** How many steps this institution has in total. */
+  stepCount: number;
   /** Permitted value that becomes available when this phase completes. */
   valueReleasedUsd: number;
   /**
@@ -133,6 +142,8 @@ export function buildSequence(
 
     phases.push({
       phase,
+      step: 0,
+      stepCount: 0,
       weeksLow: cumulativeLow,
       weeksHigh: cumulativeHigh,
       gates,
@@ -143,9 +154,15 @@ export function buildSequence(
     previousPermitted = permittedAfter;
   }
 
-  return phases.map((p) => {
-    const note = zeroReleaseNote(p, blockingByWorkload);
-    return note ? { ...p, releaseNote: note } : p;
+  // Steps are assigned last, when the rendered phase count is known, and the
+  // note is written in the same vocabulary the reader sees on screen.
+  const stepOf = new Map<number, number>();
+  phases.forEach((p, index) => stepOf.set(p.phase, index + 1));
+
+  return phases.map((p, index) => {
+    const numbered = { ...p, step: index + 1, stepCount: phases.length };
+    const note = zeroReleaseNote(numbered, blockingByWorkload, stepOf);
+    return note ? { ...numbered, releaseNote: note } : numbered;
   });
 }
 
@@ -159,7 +176,8 @@ export function buildSequence(
  */
 function zeroReleaseNote(
   phase: Phase,
-  blockingByWorkload: Map<string, string[]>
+  blockingByWorkload: Map<string, string[]>,
+  stepOf: Map<number, number>
 ): string | undefined {
   if (phase.valueReleasedUsd > 0) return undefined;
 
@@ -184,7 +202,8 @@ function zeroReleaseNote(
 
   const next = Math.min(...waitingOn);
   const pronoun = phase.gates.length === 1 ? "it" : "them";
-  return `${subject} Releases nothing until phase ${next} clears alongside ${pronoun}.`;
+  // Named by the step the reader sees, not the corpus phase key.
+  return `${subject} Releases nothing until step ${stepOf.get(next) ?? next} clears alongside ${pronoun}.`;
 }
 
 function lowerFirst(s: string): string {

@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
   // The deterministic half. Rendered whether or not the model call succeeds.
   const deterministic = {
     institutionLine: `${institution.name}. ${institution.profile}`,
+    headlineLine:
+      `$${roundToNearestThousand(ledger.totals.permittedValueUsd).toLocaleString("en-US")} available now. ` +
+      `$${roundToNearestThousand(ledger.totals.lockedValueUsd).toLocaleString("en-US")} behind controls.`,
     sequenceLines: phases.map(
       (p) =>
         `Phase ${p.phase}. ${p.gates.map((g) => g.name).join(", ")}. ` +
