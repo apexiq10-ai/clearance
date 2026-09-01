@@ -37,6 +37,7 @@ export function LedgerRow({
   economics,
   expanded,
   onToggle,
+  challenge,
 }: {
   row: LedgerRowData;
   workload: WorkloadArchetype;
@@ -44,6 +45,8 @@ export function LedgerRow({
   economics: EconomicsConstants;
   expanded: boolean;
   onToggle: () => void;
+  /** Set when the risk committee has revised this row down. */
+  challenge?: { claim: string; revisedPermittedPct: number; gateId: string };
 }) {
   const permittedValue = useCountUp(row.permittedValueUsd, true);
   const lockedValue = useCountUp(row.lockedValueUsd, true);
@@ -160,6 +163,12 @@ export function LedgerRow({
           <span>where this volume comes from</span>
         </Numeral>
       </div>
+
+      {challenge ? (
+        <p className="border-t border-hairline bg-paper px-5 py-4 font-body text-sm leading-relaxed text-flag sm:px-6">
+          {challenge.claim}
+        </p>
+      ) : null}
 
       {expanded ? (
         <Drilldown

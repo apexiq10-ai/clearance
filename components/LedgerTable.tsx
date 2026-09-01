@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type {
   EconomicsConstants,
   InstitutionArchetype,
@@ -16,6 +16,8 @@ import { Numeral } from "./Provenance";
 import type { TraceLine } from "../lib/defaults";
 import { lockedGateIds } from "../lib/defaults";
 import { headlineUsd, spell } from "../lib/format";
+import type { Challenge } from "../lib/schema";
+import { ledgerFromRows } from "../lib/defaults";
 import { totalProvenance } from "../lib/provenance";
 import { useCountUp } from "../lib/motion";
 import type { Phase } from "../lib/sequence";
@@ -51,10 +53,84 @@ export function LedgerTable({
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const gateCount = lockedGateIds(ledger.rows).length;
-  // Figures count up once on first render and never animate again.
-  const permittedTotal = useCountUp(ledger.totals.permittedValueUsd, true);
-  const lockedTotal = useCountUp(ledger.totals.lockedValueUsd, true);
+  // Risk committee mode. Off by default, and toggling off reverts instantly
+  // because nothing about the underlying data changed, only the overlay.
+  const [arguing, setArguing] = useState(false);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [challengeNote, setChallengeNote] = useState<string | null>(null);
+  const [challengePending, setChallengePending] = useState(false);
+
+  const challengeByWorkload = useMemo(() => {
+    const map = new Map<string, Challenge>();
+    if (arguing) for (const c of challenges) map.set(c.targetWorkloadId, c);
+    return map;
+  }, [arguing, challenges]);
+
+  /**
+   * The ledger with the surviving challenges applied, through the same compute
+   * path as everything else. No second cost model, and the ceiling is untouched
+   * because a challenge revises what is permitted, not what is possible.
+   */
+  const shown = useMemo(() => {
+    if (!arguing || challenges.length === 0) return ledger;
+    const revised = ledger.rows.map((row) => {
+      const c = challengeByWorkload.get(row.workloadId);
+      return {
+        workloadId: row.workloadId,
+        permittedPct: c ? c.revisedPermittedPct : row.permittedPct,
+        ceilingPct: row.ceilingPct,
+        reasoning: row.reasoning,
+      };
+    });
+    return ledgerFromRows(institution, revised, economics).ledger;
+  }, [arguing, challenges, challengeByWorkload, ledger, institution, economics]);
+
+  async function toggleArgue() {
+    if (arguing) {
+      // Off: revert instantly, keep nothing.
+      setArguing(false);
+      setChallenges([]);
+      setChallengeNote(null);
+      return;
+    }
+
+    // On: a fresh call every time, because regenerating is the demonstration.
+    setChallengePending(true);
+    setChallengeNote(null);
+    try {
+      const response = await fetch("/api/challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          institutionId: institution.id,
+          rows: ledger.rows.map((r) => ({
+            workloadId: r.workloadId,
+            permittedPct: r.permittedPct,
+            ceilingPct: r.ceilingPct,
+          })),
+        }),
+      });
+      const data = (await response.json()) as {
+        challenges?: Challenge[];
+        note?: string | null;
+      };
+      setChallenges(data.challenges ?? []);
+      setChallengeNote(data.note ?? null);
+      setArguing(true);
+    } catch {
+      setChallenges([]);
+      setChallengeNote("The challenge did not run. The ledger is unchanged.");
+      setArguing(true);
+    } finally {
+      setChallengePending(false);
+    }
+  }
+
+  const gateCount = lockedGateIds(shown.rows).length;
+  // Figures count up once on first render and never animate again. A challenge
+  // landing moves them, and the transition on the figure carries that.
+  const permittedTotal = useCountUp(shown.totals.permittedValueUsd, true);
+  const lockedTotal = useCountUp(shown.totals.lockedValueUsd, true);
 
   const workloads = ledger.rows
     .map((r) => WORKLOADS_BY_ID[r.workloadId])
@@ -71,13 +147,26 @@ export function LedgerTable({
             {institution.profile}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onStartOver}
-          className="font-sans text-sm text-slate underline decoration-hairline underline-offset-4 transition-colors hover:text-violet"
-        >
-          Change institution
-        </button>
+        <div className="flex items-center gap-6">
+          <button
+            type="button"
+            onClick={onStartOver}
+            className="font-sans text-sm text-slate underline decoration-hairline underline-offset-4 transition-colors hover:text-violet"
+          >
+            Change institution
+          </button>
+          <button
+            type="button"
+            onClick={toggleArgue}
+            aria-pressed={arguing}
+            disabled={challengePending}
+            className={`font-sans text-sm font-semibold transition-colors disabled:cursor-default ${
+              arguing ? "text-flag" : "text-ink hover:text-flag"
+            }`}
+          >
+            {challengePending ? "Arguing" : "Argue with this"}
+          </button>
+        </div>
       </header>
 
       {notice ? (
@@ -94,7 +183,7 @@ export function LedgerTable({
         <section>
           {/* The gap is the rule. No cell draws a border of its own. */}
           <div className="grid gap-px border border-hairline bg-hairline">
-            {ledger.rows.map((row) => {
+            {shown.rows.map((row) => {
               const workload = WORKLOADS_BY_ID[row.workloadId];
               if (!workload) return null;
               return (
@@ -104,6 +193,7 @@ export function LedgerTable({
                   workload={workload}
                   institution={institution}
                   economics={economics}
+                  challenge={challengeByWorkload.get(row.workloadId)}
                   expanded={expandedId === row.workloadId}
                   onToggle={() =>
                     setExpandedId((id) =>
@@ -118,7 +208,7 @@ export function LedgerTable({
           <div className="mt-10">
             <p className="max-w-[65ch] font-serif text-2xl leading-tight text-ink sm:text-3xl">
               <Numeral
-                provenance={totalProvenance(ledger.rows.length, "permitted")}
+                provenance={totalProvenance(shown.rows.length, "permitted")}
                 align="left"
                 className="font-serif"
               >
@@ -127,7 +217,7 @@ export function LedgerTable({
               available now.{" "}
               <span className="inline-block w-3" />
               <Numeral
-                provenance={totalProvenance(ledger.rows.length, "locked")}
+                provenance={totalProvenance(shown.rows.length, "locked")}
                 align="left"
                 className="font-serif"
               >
@@ -135,6 +225,12 @@ export function LedgerTable({
               </Numeral>{" "}
               behind {spell(gateCount)} control{gateCount === 1 ? "" : "s"}.
             </p>
+
+            {arguing && challengeNote ? (
+              <p className="mt-4 max-w-[65ch] font-body text-sm leading-relaxed text-slate">
+                {challengeNote}
+              </p>
+            ) : null}
 
             <div className="mt-6 border border-hairline">
               <button
