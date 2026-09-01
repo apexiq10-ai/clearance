@@ -1,0 +1,13 @@
+{
+  "name": "permission-ledger",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "validate": "tsx scripts/validate-corpus.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}
