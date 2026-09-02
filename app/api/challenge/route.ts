@@ -12,6 +12,12 @@ import {
   type Challenge,
 } from "../../../lib/schema";
 import { parseFirstJsonObject } from "../../../lib/json";
+import {
+  clientIp,
+  rateLimit,
+  rateLimitHeaders,
+  RATE_LIMIT_MESSAGE,
+} from "../../../lib/ratelimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -35,6 +41,14 @@ Never use an em-dash.
 Return only JSON.`;
 
 export async function POST(request: NextRequest) {
+  const verdict = rateLimit(clientIp(request));
+  if (!verdict.allowed) {
+    return Response.json(
+      { challenges: [], note: RATE_LIMIT_MESSAGE },
+      { status: 429, headers: rateLimitHeaders(verdict) }
+    );
+  }
+
   const body = (await request.json().catch(() => ({}))) as {
     institutionId?: SegmentId;
     rows?: Array<{ workloadId: string; permittedPct: number; ceilingPct: number }>;

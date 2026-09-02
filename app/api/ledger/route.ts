@@ -14,6 +14,12 @@ import {
 } from "../../../lib/schema";
 import { encodeEvent, parseTraceLine } from "../../../lib/stream";
 import { parseFirstJsonObject } from "../../../lib/json";
+import {
+  clientIp,
+  rateLimit,
+  rateLimitHeaders,
+  RATE_LIMIT_MESSAGE,
+} from "../../../lib/ratelimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -196,6 +202,16 @@ function buildUserMessage(
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  // Shared budget, shared limit. The client renders this the same way it
+  // renders a timeout, and falls back to the corpus ledger underneath it.
+  const verdict = rateLimit(clientIp(request));
+  if (!verdict.allowed) {
+    return new Response(
+      encodeEvent({ kind: "error", message: RATE_LIMIT_MESSAGE }),
+      { status: 429, headers: { ...sseHeaders(), ...rateLimitHeaders(verdict) } }
+    );
+  }
+
   const body = (await request.json().catch(() => ({}))) as {
     institutionId?: SegmentId | null;
     filing?: string;

@@ -20,6 +20,12 @@ import {
 import { briefSchema, type Brief } from "../../../lib/schema";
 import { encodeEvent } from "../../../lib/stream";
 import { parseFirstJsonObject } from "../../../lib/json";
+import {
+  clientIp,
+  rateLimit,
+  rateLimitHeaders,
+  RATE_LIMIT_MESSAGE,
+} from "../../../lib/ratelimit";
 import { roundToNearestThousand } from "../../../lib/compute";
 
 export const runtime = "nodejs";
@@ -77,6 +83,14 @@ Write dollar figures as digits. Say step, never phase. Never use an em-dash.
 Return only JSON with the single key position. No markdown, no preamble.`;
 
 export async function POST(request: NextRequest) {
+  const verdict = rateLimit(clientIp(request));
+  if (!verdict.allowed) {
+    return new Response(
+      encodeEvent({ kind: "error", message: RATE_LIMIT_MESSAGE }),
+      { status: 429, headers: { ...sseHeaders(), ...rateLimitHeaders(verdict) } }
+    );
+  }
+
   const body = (await request.json().catch(() => ({}))) as {
     institutionId?: SegmentId;
   };
