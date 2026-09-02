@@ -53,36 +53,37 @@ export function SequenceView({
       </p>
 
       {/*
-        One shared grid across all columns, not five blocks flowing
-        independently per column.
+        Equal height columns, with the released figure pinned to the bottom.
 
-        The parent owns five row tracks. Each column spans all five and takes
-        them as a subgrid, so a column with four gates cannot push its own
-        Unlocks heading below the neighbouring column's. Every row track is
-        sized by its tallest cell across every column, which is what puts the
-        value released figure on one shared baseline.
+        Subgrid was the wrong mechanism here. This is simpler and it actually
+        holds: the grid stretches every column to the height of the tallest one,
+        each column is a flex column, and the released figure carries margin-top
+        auto so it is pushed to the bottom of whatever space is left. Its
+        distance from the bottom of the column is then the column's own bottom
+        padding, which is identical everywhere, so the figure sits on one line
+        across two or three columns without any height being calculated.
 
-        Column gap only. A row gap would draw hairlines across the columns and
-        cut each one into five boxes.
+        The release note sits above the figure rather than below it. Below, it
+        would push the figure up in the one column that has a note and break the
+        shared line the rest of this exists to guarantee.
+
+        Column gap only. A row gap would draw hairlines across the columns.
       */}
       <div
-        className={`grid gap-x-px gap-y-0 border border-hairline bg-hairline ${gridClass}`}
-        style={{ gridTemplateRows: "repeat(5, auto)" }}
+        className={`grid items-stretch gap-x-px gap-y-0 border border-hairline bg-hairline ${gridClass}`}
       >
         {phases.map((phase) => (
           <div
             key={phase.step}
-            className="row-span-5 grid grid-rows-subgrid bg-paper px-5 sm:px-6"
+            className="flex flex-col bg-paper px-5 py-6 sm:px-6"
           >
             {/*
-              Row 1, the header. The numeral and the label share a baseline
-              rather than the numeral floating above the block: both sit in one
-              flex row aligned on the first text baseline, and the numeral
-              carries the same leading as the label so the baselines actually
-              coincide.
+              The numeral is a marker beside its label, not a heading above it:
+              centred against the two line block, with the same tight leading,
+              at a size that sits with the text rather than over it.
             */}
-            <div className="flex items-baseline gap-3 pt-6">
-              <span className="font-serif text-3xl leading-tight text-ink">
+            <div className="flex items-center gap-3.5">
+              <span className="font-serif text-[1.75rem] leading-tight text-ink">
                 {phase.step}
               </span>
               <div>
@@ -95,85 +96,74 @@ export function SequenceView({
               </div>
             </div>
 
-            {/* Row 2, the gates heading and list. */}
-            <div className="pt-4">
-              <h3 className="font-sans text-base font-semibold leading-tight text-ink">
-                Clear {spell(phase.gates.length)} gate
-                {phase.gates.length === 1 ? "" : "s"}
-              </h3>
+            <h3 className="mt-5 font-sans text-base font-semibold leading-tight text-ink">
+              Clear {spell(phase.gates.length)} gate
+              {phase.gates.length === 1 ? "" : "s"}
+            </h3>
 
-              <ul className="mt-4 space-y-3">
-                {phase.gates.map((gate) => (
-                  <li key={gate.id}>
-                    <p className="font-body text-sm leading-relaxed text-ink">
-                      {gate.name}
-                    </p>
-                    <p className="mt-0.5 font-mono text-xs leading-tight text-slate">
-                      {OWNER_LABEL[gate.owner] ?? gate.owner}
-                      <span className="mx-2 text-hairline">|</span>
-                      <Numeral
-                        provenance={gate.typicalElapsedWeeks.provenance}
-                        align="left"
-                      >
-                        <span>
-                          {gate.typicalElapsedWeeks.low} to{" "}
-                          {gate.typicalElapsedWeeks.high} weeks
-                        </span>
-                      </Numeral>
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="mt-4 space-y-3">
+              {phase.gates.map((gate) => (
+                <li key={gate.id}>
+                  <p className="font-body text-sm leading-relaxed text-ink">
+                    {gate.name}
+                  </p>
+                  <p className="mt-0.5 font-mono text-xs leading-tight text-slate">
+                    {OWNER_LABEL[gate.owner] ?? gate.owner}
+                    <span className="mx-2 text-hairline">|</span>
+                    <Numeral
+                      provenance={gate.typicalElapsedWeeks.provenance}
+                      align="left"
+                    >
+                      <span>
+                        {gate.typicalElapsedWeeks.low} to{" "}
+                        {gate.typicalElapsedWeeks.high} weeks
+                      </span>
+                    </Numeral>
+                  </p>
+                </li>
+              ))}
+            </ul>
 
-            {/* Row 3, unlocks. Rendered even when empty so the track holds. */}
-            <div className="pt-6">
-              {phase.unlockedWorkloadIds.length > 0 ? (
-                <>
-                  <h4 className="font-sans text-sm font-semibold leading-tight text-ink">
-                    Unlocks
-                  </h4>
-                  <ul className="mt-2 space-y-1">
-                    {phase.unlockedWorkloadIds.map((id) => (
-                      <li
-                        key={id}
-                        className="font-body text-sm leading-relaxed text-slate"
-                      >
-                        {WORKLOADS_BY_ID[id]?.name ?? id}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-            </div>
+            {phase.unlockedWorkloadIds.length > 0 ? (
+              <>
+                <h4 className="mt-6 font-sans text-sm font-semibold leading-tight text-ink">
+                  Unlocks
+                </h4>
+                <ul className="mt-2 space-y-1">
+                  {phase.unlockedWorkloadIds.map((id) => (
+                    <li
+                      key={id}
+                      className="font-body text-sm leading-relaxed text-slate"
+                    >
+                      {WORKLOADS_BY_ID[id]?.name ?? id}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
 
-            {/* Row 4, the value released, on one shared baseline. */}
-            <div className="pt-6">
-              <p className="font-mono text-base leading-tight">
-                <Numeral
-                  provenance={{
-                    class: "inferred",
-                    method:
-                      `The ledger recomputed with ${institution.name.toLowerCase()} evidencing this phase's gates ` +
-                      `and every gate before it, less the permitted total at the end of the previous phase. ` +
-                      `Same arithmetic as the ledger above, not a second model.`,
-                  }}
-                  align="left"
-                >
-                  <span className="text-violet">{usd(phase.valueReleasedUsd)}</span>
-                </Numeral>
-                <span className="ml-2 font-body text-sm text-slate">released</span>
+            {phase.releaseNote ? (
+              <p className="mt-6 max-w-[65ch] font-body text-xs leading-relaxed text-slate">
+                {phase.releaseNote}
               </p>
-            </div>
+            ) : null}
 
-            {/* Row 5, the note, present as an empty cell where there is none. */}
-            <div className="pb-6 pt-2">
-              {phase.releaseNote ? (
-                <p className="max-w-[65ch] font-body text-xs leading-relaxed text-slate">
-                  {phase.releaseNote}
-                </p>
-              ) : null}
-            </div>
+            {/* mt-auto pins this to the bottom of every column. */}
+            <p className="mt-auto pt-6 font-mono text-base leading-tight">
+              <Numeral
+                provenance={{
+                  class: "inferred",
+                  method:
+                    `The ledger recomputed with ${institution.name.toLowerCase()} evidencing this phase's gates ` +
+                    `and every gate before it, less the permitted total at the end of the previous phase. ` +
+                    `Same arithmetic as the ledger above, not a second model.`,
+                }}
+                align="left"
+              >
+                <span className="text-violet">{usd(phase.valueReleasedUsd)}</span>
+              </Numeral>
+              <span className="ml-2 font-body text-sm text-slate">released</span>
+            </p>
           </div>
         ))}
       </div>

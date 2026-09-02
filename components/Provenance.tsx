@@ -57,7 +57,7 @@ export function Provenance({
         onKeyDown={(e) => e.stopPropagation()}
         aria-describedby={id}
         aria-label={`${LABEL[provenance.class]}. ${detail}`}
-        className="ml-1 cursor-help font-mono text-xs leading-none text-slate transition-colors hover:text-violet focus-visible:text-violet"
+        className="ml-1.5 cursor-help font-mono text-xs leading-none text-slate/60 transition-colors hover:text-violet focus-visible:text-violet"
       >
         {marker}
       </button>
