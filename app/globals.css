@@ -206,6 +206,18 @@ body {
  * The one place tracked out uppercase mono is permitted in this build. Here it
  * signals a prepared instrument rather than dressing up a heading.
  */
+/*
+ * The header names, in Plex Sans. Mono is narrowed to true data, so the
+ * wordmark and the institution read as labels while the reference hash beside
+ * them keeps the mono register it earns as an identifier.
+ */
+.brief-header-name {
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--color-brief-ink);
+}
+
 .brief-header-mark {
   font-family: var(--font-mono);
   font-size: 0.6875rem;

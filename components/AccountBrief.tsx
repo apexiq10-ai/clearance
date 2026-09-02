@@ -112,8 +112,8 @@ export function AccountBrief({
             {/* Recoloured to the paper register, so it belongs to the printed
                 document rather than importing the app's palette into it. */}
             <Mark variant="brief" className="translate-y-[2px]" />
-            <span className="brief-header-mark">Clearance</span>
-            <span className="brief-header-mark">{institution.name}</span>
+            <span className="brief-header-name">Clearance</span>
+            <span className="brief-header-name">{institution.name}</span>
           </span>
           <span className="brief-header-mark">
             {deterministic
@@ -177,7 +177,7 @@ export function AccountBrief({
               ))
             : null}
           {deterministic ? (
-            <p className="mt-5 font-mono text-sm text-brief-ink">
+            <p className="mt-5 font-body text-sm font-medium text-brief-ink">
               {deterministic.closingLine}
             </p>
           ) : null}
@@ -234,7 +234,7 @@ export function AccountBrief({
 
           {brief ? (
             <>
-              <p className="mt-6 font-mono text-xs uppercase tracking-wider text-brief-signal-dim">
+              <p className="mt-6 font-body text-sm font-semibold text-brief-signal-dim">
                 Two questions for the next call
               </p>
               <ol className="mt-2 space-y-1.5">
@@ -255,7 +255,7 @@ export function AccountBrief({
         ) : null}
 
         {status === "building" ? (
-          <p className="mt-8 border-t border-brief-line pt-5 font-mono text-xs text-brief-signal-dim print:hidden">
+          <p className="mt-8 border-t border-brief-line pt-5 font-body text-sm font-medium text-brief-signal-dim print:hidden">
             writing
           </p>
         ) : (
@@ -337,7 +337,7 @@ function Figure({
 }) {
   return (
     <div className="bg-brief-paper px-4 py-3">
-      <dt className="font-mono text-xs text-brief-ink/60">{label}</dt>
+      <dt className="font-body text-xs font-medium text-brief-ink/60">{label}</dt>
       <dd
         className={`tnum mt-1 font-mono text-lg ${accent ? "text-brief-signal" : "text-brief-ink"}`}
       >
@@ -358,7 +358,7 @@ function PlayBlock({ play, name }: { play: Play; name?: string }) {
           {name ??
             `Clear ${play.gates.length === 1 ? "the gate" : "the gates"} in step ${play.step}`}
         </h4>
-        <span className="font-mono text-xs text-brief-ink/60">
+        <span className="font-body text-xs font-medium text-brief-ink/60">
           weeks {play.weeksLow} to {play.weeksHigh}
         </span>
       </div>
@@ -366,9 +366,9 @@ function PlayBlock({ play, name }: { play: Play; name?: string }) {
       <dl className="mt-3 space-y-3">
         {play.gates.map((gate) => (
           <div key={gate.gateId}>
-            <dt className="font-mono text-xs text-brief-ink">
+            <dt className="font-body text-sm font-semibold text-brief-ink">
               {gate.gateName}
-              <span className="ml-2 text-brief-ink/60">
+              <span className="ml-2 font-medium text-brief-ink/60">
                 {gate.ownerLabel}, {gate.weeksLow} to {gate.weeksHigh} weeks
               </span>
             </dt>
@@ -380,8 +380,10 @@ function PlayBlock({ play, name }: { play: Play; name?: string }) {
         ))}
       </dl>
 
-      <p className="mt-3 font-mono text-sm text-brief-ink">
-        <span className="text-brief-signal">{briefUsd(play.valueReleasedUsd)}</span>
+      <p className="mt-3 font-body text-sm font-medium text-brief-ink">
+        <span className="tnum font-mono text-brief-signal">
+          {briefUsd(play.valueReleasedUsd)}
+        </span>
         <span className="ml-2 text-brief-ink/60">released</span>
         {play.champions.length > 0 ? (
           <span className="ml-4 text-brief-ink/60">
@@ -398,7 +400,7 @@ function PlayBlock({ play, name }: { play: Play; name?: string }) {
 
       {play.proofPoint ? (
         <p className="mt-2 font-body text-sm leading-relaxed text-brief-ink/70">
-          <span className="font-mono text-xs text-brief-ink/60">proof. </span>
+          <span className="font-body text-xs font-semibold text-brief-ink/60">proof. </span>
           {play.proofPoint}
         </p>
       ) : null}
