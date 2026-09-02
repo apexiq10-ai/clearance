@@ -176,7 +176,12 @@ export function LedgerTable({
         </p>
       ) : null}
 
-      <SectionMark index="01" label="The ledger" className="mt-10" />
+      <SectionMark
+        index="01"
+        label="The ledger"
+        hint="Expand any row for the detail."
+        className="mt-10"
+      />
 
       <div className="mt-5 grid gap-10 lg:grid-cols-[15rem_1fr] lg:gap-14">
         <aside className="lg:sticky lg:top-10 lg:self-start">
@@ -184,8 +189,6 @@ export function LedgerTable({
         </aside>
 
         <section>
-          <SectionMark index="03" label="The detail, open any row" className="mb-4" />
-
           {/* The gap is the rule. No cell draws a border of its own. */}
           <div className="grid gap-px border border-hairline bg-hairline">
             {shown.rows.map((row) => {
@@ -273,7 +276,7 @@ export function LedgerTable({
         The plan is enough to sell it. This is the document that says so.
       </p>
 
-      <SectionMark index="04" label="The brief" className="mt-8" />
+      <SectionMark index="03" label="The brief" className="mt-8" />
       <AccountBrief
         institution={institution}
         onFocusGate={(gateId) => {

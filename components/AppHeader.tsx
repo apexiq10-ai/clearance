@@ -10,10 +10,25 @@ import { Mark } from "./Mark";
  * returns to the landing screen and resets all state, the same reset the
  * "Change institution" control performs.
  */
-export function AppHeader({ onHome }: { onHome: () => void }) {
+export function AppHeader({
+  onHome,
+  width = "wide",
+}: {
+  onHome: () => void;
+  /**
+   * The header sits in the same container as the screen below it, so the mark
+   * shares a left edge with the copy underneath rather than floating at the
+   * viewport edge. The landing screen is narrower than the ledger, so the
+   * width travels with the screen.
+   */
+  width?: "wide" | "narrow";
+}) {
+  // Written out rather than interpolated, so Tailwind can see both classes.
+  const container = width === "narrow" ? "max-w-5xl" : "max-w-6xl";
+
   return (
     <header className="border-b border-hairline bg-canvas print:hidden">
-      <div className="mx-auto flex max-w-6xl items-center px-5 py-4 sm:px-8">
+      <div className={`mx-auto flex ${container} items-center px-5 py-4 sm:px-8`}>
         <button
           type="button"
           onClick={onHome}

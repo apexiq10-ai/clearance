@@ -237,7 +237,7 @@ export default function Page() {
   if (screen === "question") {
     return (
       <>
-        <AppHeader onHome={startOver} />
+        <AppHeader onHome={startOver} width="narrow" />
         <Chooser
           filing={filing}
           onFilingChange={setFiling}
