@@ -46,6 +46,27 @@ export function SequenceView({
   // than interpolated so Tailwind can see the class names.
   const gridClass = phases.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2";
 
+  /**
+   * A shared floor for the gates list, so the Unlocks heading starts at the
+   * same height in every column.
+   *
+   * Unlocks is a middle element, not an edge, so margin-top auto cannot reach
+   * it: that pins to the bottom, and the value already owns the bottom. The
+   * gates block instead gets one identical minimum height in every column,
+   * sized to the longest gates list in this institution's own sequence, so
+   * everything after it starts from the same line whatever a given column
+   * holds.
+   *
+   * A floor rather than a fixed height, so a gate name that wraps further than
+   * expected grows the block instead of being clipped.
+   *
+   * Per gate: two lines of name at 0.875rem on 1.625 leading, plus the owner
+   * line at 0.75rem on 1.25 with its 0.125rem offset. Plus the 0.75rem gap
+   * between entries.
+   */
+  const maxGates = Math.max(...phases.map((p) => p.gates.length));
+  const gatesFloor = `${(maxGates * 3.9 + (maxGates - 1) * 0.75).toFixed(2)}rem`;
+
   return (
     <section className="mt-5">
       <p className="mb-8 max-w-[65ch] font-serif text-xl leading-tight text-ink sm:text-2xl">
@@ -101,7 +122,7 @@ export function SequenceView({
               {phase.gates.length === 1 ? "" : "s"}
             </h3>
 
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 space-y-3" style={{ minHeight: gatesFloor }}>
               {phase.gates.map((gate) => (
                 <li key={gate.id}>
                   <p className="font-body text-sm leading-relaxed text-ink">

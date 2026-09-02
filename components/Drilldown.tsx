@@ -84,11 +84,11 @@ export function Drilldown({
             standing in for work that is not happening. 70ms apart, under 500ms
             in total, and prefers-reduced-motion collapses it to the final state.
           */}
-          <div className="mt-4 grid gap-px border border-hairline bg-hairline lg:grid-cols-2">
+          <div className="mt-4 grid items-stretch gap-px border border-hairline bg-hairline lg:grid-cols-2">
             {gates.map((gate, index) => (
               <div
                 key={gate.id}
-                className="cascade-in bg-paper px-5 py-5"
+                className="cascade-in flex flex-col bg-paper px-5 py-5"
                 style={{ animationDelay: `${index * 70}ms` }}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -120,16 +120,26 @@ export function Drilldown({
                   {gate.unlockPath}
                 </p>
 
-                <p className="mt-4 max-w-[65ch] font-body text-sm leading-relaxed text-ink">
-                  <span className="font-semibold">What clears it. </span>
-                  {gate.commercialMotion}
-                </p>
-
                 {gate.residualHumanGate ? (
                   <p className="mt-3 max-w-[65ch] font-body text-xs leading-relaxed text-slate">
                     Even once cleared: {gate.residualHumanGate}
                   </p>
                 ) : null}
+
+                {/*
+                  Pinned to the bottom of the card. The row stretches every card
+                  to the tallest, the card is a flex column, and margin-top auto
+                  absorbs the difference, so this line starts at the same height
+                  whatever the length of the paragraphs above it.
+
+                  The residual note sits above rather than below, because
+                  anything after this block would push it up in the five gates
+                  that carry one and break the shared line.
+                */}
+                <p className="mt-auto pt-4 max-w-[65ch] font-body text-sm leading-relaxed text-ink">
+                  <span className="font-semibold">What clears it. </span>
+                  {gate.commercialMotion}
+                </p>
               </div>
             ))}
           </div>
