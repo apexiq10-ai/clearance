@@ -16,35 +16,47 @@ export function useReducedMotion(): boolean {
 }
 
 /**
- * Counts a figure up when its row lands, once, then tracks the target
- * directly. Repricing from the assumptions panel changes the number without
- * animating it, which is what the design spec asks for.
+ * Tweens a figure from wherever it is to its new target. Counts up from zero
+ * on first mount, then glides between values when the institution, an
+ * assumption or a challenge changes it.
  */
-export function useCountUp(target: number, active: boolean, durationMs = 400) {
+export function useAnimatedNumber(target: number, durationMs = 900): number {
   const reduced = useReducedMotion();
   const [value, setValue] = useState(0);
-  const hasRun = useRef(false);
+  const current = useRef(0);
 
   useEffect(() => {
-    if (!active) return;
-    if (hasRun.current || reduced) {
+    if (reduced) {
+      current.current = target;
       setValue(target);
-      hasRun.current = true;
       return;
     }
-    hasRun.current = true;
+    const from = current.current;
+    if (from === target) return;
     const start = performance.now();
     let frame = 0;
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / durationMs);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setValue(target * eased);
+      // Exponential ease out: fast start, long soft landing.
+      const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+      const next = from + (target - from) * eased;
+      current.current = next;
+      setValue(next);
       if (t < 1) frame = requestAnimationFrame(tick);
-      else setValue(target);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [active, target, reduced, durationMs]);
+  }, [target, reduced, durationMs]);
 
-  return active ? value : 0;
+  return value;
+}
+
+/** True after the first client paint, so bars can animate in from zero. */
+export function useMounted(): boolean {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  return mounted;
 }

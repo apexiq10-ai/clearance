@@ -1,137 +1,221 @@
 @import "tailwindcss";
 
 /*
- * DESIGN_SPEC_V2. Nine colour tokens and every one carries a job.
- * If a colour appears that does not encode a state, remove it.
- *
- * There is no green in this interface. Version one used green for permitted.
- * Permitted and locked are now the same violet in two treatments, which is the
- * whole visual argument.
+ * Clearance v3. See DESIGN.md.
+ * Neutral surfaces, one accent. Tokens flip with the system appearance.
  */
 @theme {
-  --color-paper: #ffffff;
-  --color-canvas: #f7f6fa;
-  --color-shade: #efecf5;
-  --color-hairline: #e4e1ec;
-  --color-ink: #10022c;
-  --color-slate: #5f5a6e;
-  --color-violet: #7c52ff;
-  --color-violet-tint: #f1ecff;
-  --color-flag: #c0244a;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-fill: var(--fill);
+  --color-fill-strong: var(--fill-strong);
+  --color-separator: var(--separator);
+  --color-label: var(--label);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-wash: var(--accent-wash);
+  --color-positive: var(--positive);
+  --color-critical: var(--critical);
+  --color-critical-wash: var(--critical-wash);
+  --color-caution: var(--caution);
 
-  --font-sans: var(--font-archivo), system-ui, sans-serif;
-  --font-body: var(--font-plex-sans), system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
-  --font-serif: var(--font-instrument-serif), Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), "Segoe UI", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-inter), "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
 
-  --radius-chip: 3px;
-
-  /*
-   * BRIEF_SPEC_V2 section 4. The one deliberate departure from DESIGN_SPEC_V2
-   * in the build, scoped to the brief component and its print output.
-   *
-   * The rest of the interface is a live instrument someone operates. The brief
-   * is a prepared document that gets printed, forwarded, and read cold. It
-   * should read like a document, not a screen.
-   */
-  --color-brief-canvas: #0b0d12;
-  --color-brief-paper: #f4f3ef;
-  --color-brief-ink: #14161c;
-  --color-brief-line: #c9c4b8;
-  --color-brief-signal: #7c52ff;
-  --color-brief-signal-dim: #4a3a80;
-  --color-brief-amber: #c8862b;
+  --ease-apple: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
-html {
-  background-color: var(--color-canvas);
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --elevated: rgba(255, 255, 255, 0.78);
+  --popover: #ffffff;
+  --fill: rgba(120, 120, 128, 0.1);
+  --fill-strong: rgba(120, 120, 128, 0.18);
+  --separator: rgba(60, 60, 67, 0.13);
+  --label: #1d1d1f;
+  --secondary: #6e6e73;
+  --tertiary: #8e8e93;
+  --accent: #5b4cf0;
+  --accent-soft: rgba(91, 76, 240, 0.26);
+  --accent-wash: rgba(91, 76, 240, 0.08);
+  --positive: #1f8a3e;
+  --critical: #d70015;
+  --critical-wash: rgba(215, 0, 21, 0.07);
+  --caution: #b25000;
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 40px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.03), 0 2px 10px rgba(0, 0, 0, 0.03);
   color-scheme: light;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --elevated: rgba(30, 30, 32, 0.78);
+    --popover: #2c2c2e;
+    --fill: rgba(120, 120, 128, 0.2);
+    --fill-strong: rgba(120, 120, 128, 0.32);
+    --separator: rgba(84, 84, 88, 0.55);
+    --label: #f5f5f7;
+    --secondary: #a1a1a6;
+    --tertiary: #7c7c80;
+    --accent: #8b80ff;
+    --accent-soft: rgba(139, 128, 255, 0.32);
+    --accent-wash: rgba(139, 128, 255, 0.14);
+    --positive: #30d158;
+    --critical: #ff6961;
+    --critical-wash: rgba(255, 105, 97, 0.12);
+    --caution: #ffb340;
+    --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 48px rgba(0, 0, 0, 0.6);
+    --shadow-card: none;
+    color-scheme: dark;
+  }
+}
+
+html {
+  background-color: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background-color: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-body);
+  background-color: var(--bg);
+  color: var(--label);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Border radius is 0 everywhere except state chips. */
-* {
-  border-radius: 0;
+::selection {
+  background: var(--accent-soft);
 }
 
-/* Numerals line up down a column or they are not numerals. */
+@layer components {
 .tnum {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-/*
- * The one bold move. Permitted is solid violet, locked is the same violet you
- * can see through. Locked money looks like money behind glass.
- */
-.bar-locked {
-  background-color: var(--color-violet-tint);
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent 0px,
-    transparent 2px,
-    color-mix(in srgb, var(--color-violet) 35%, transparent) 2px,
-    color-mix(in srgb, var(--color-violet) 35%, transparent) 4px
-  );
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
 }
 
-/*
- * Emphasis device one. Mono uppercase, violet tint fill, violet text.
- * Reserved for state: tier 1, phase 2, permit, block, 4 gates.
- * A chip encodes information and sits inline. An eyebrow decorates and sits
- * above a heading, and remains forbidden.
- */
-.chip {
-  display: inline-block;
-  border-radius: var(--radius-chip);
-  background-color: var(--color-violet-tint);
-  color: var(--color-violet);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  line-height: 1.25;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-  padding: 0.1875rem 0.375rem;
-  white-space: nowrap;
-}
-
-.chip-flag {
-  background-color: color-mix(in srgb, var(--color-flag) 10%, transparent);
-  color: var(--color-flag);
-}
-
-.chip-quiet {
-  background-color: var(--color-shade);
-  color: var(--color-slate);
-}
-
-/* Quality floor. Focus ring is 2px violet at 2px offset, everywhere. */
 :focus-visible {
-  outline: 2px solid var(--color-violet);
+  outline: 3px solid var(--accent-soft);
   outline-offset: 2px;
+  border-radius: 10px;
 }
 
-/* Editable assumption fields. A bottom hairline and nothing else. */
-.field {
-  background: transparent;
-  border-bottom: 1px solid var(--color-hairline);
-  color: var(--color-ink);
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  transition: border-color 0.2s ease-out;
+/* Surfaces */
+.card {
+  background: var(--surface);
+  border-radius: 22px;
+  box-shadow: var(--shadow-card);
 }
-.field:hover {
-  border-bottom-color: var(--color-violet);
+
+.material {
+  background: var(--elevated);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+.hairline-b {
+  box-shadow: inset 0 -0.5px 0 var(--separator);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s var(--ease-apple), opacity 0.2s;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--accent) 88%, #000);
+}
+.btn-secondary {
+  background: var(--fill);
+  color: var(--label);
+}
+.btn-secondary:hover {
+  background: var(--fill-strong);
+}
+.btn-plain {
+  color: var(--accent);
+  padding: 0 0.5rem;
+}
+.btn-plain:hover {
+  opacity: 0.75;
+}
+
+/* Bars. Cleared is solid accent, waiting is the same accent, lighter. */
+.bar {
+  display: flex;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--fill);
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  transition: width 0.9s var(--ease-apple);
+}
+.bar-cleared {
+  background: var(--accent);
+}
+.bar-waiting {
+  background: var(--accent-soft);
+}
+
+.dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+/* Number fields */
+.field {
+  background: var(--fill);
+  border-radius: 10px;
+  color: var(--label);
+  font-variant-numeric: tabular-nums;
+  transition: box-shadow 0.2s;
 }
 .field:focus {
   outline: none;
-  border-bottom-color: var(--color-violet);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .field::-webkit-outer-spin-button,
 .field::-webkit-inner-spin-button {
@@ -143,10 +227,95 @@ body {
   -moz-appearance: textfield;
 }
 
-/*
- * Motion. The reasoning rail is the only orchestrated moment in the interface.
- * Everything else is still.
- */
+input[type="range"] {
+  accent-color: var(--accent);
+}
+
+}
+
+/* Motion */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.fade-up {
+  animation: fade-up 0.7s var(--ease-apple) both;
+}
+.fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+.pop-in {
+  animation: pop-in 0.18s var(--ease-apple) both;
+}
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--fill-strong);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--fill) 25%, var(--fill-strong) 50%, var(--fill) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -157,165 +326,45 @@ body {
   }
 }
 
-/*
- * The brief's own devices. Nothing here appears anywhere else in the build.
- */
-
-/* Four short right-angle marks, the way a technical drawing frames itself. */
-.brief-frame {
-  position: relative;
-}
-.brief-frame::before,
-.brief-frame::after,
-.brief-frame > .brief-corner::before,
-.brief-frame > .brief-corner::after {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-color: var(--color-brief-line);
-  border-style: solid;
-  border-width: 0;
-}
-.brief-frame::before {
-  top: 8px;
-  left: 8px;
-  border-top-width: 1px;
-  border-left-width: 1px;
-}
-.brief-frame::after {
-  top: 8px;
-  right: 8px;
-  border-top-width: 1px;
-  border-right-width: 1px;
-}
-.brief-frame > .brief-corner::before {
-  bottom: 8px;
-  left: 8px;
-  border-bottom-width: 1px;
-  border-left-width: 1px;
-}
-.brief-frame > .brief-corner::after {
-  bottom: 8px;
-  right: 8px;
-  border-bottom-width: 1px;
-  border-right-width: 1px;
-}
-
-/*
- * The one place tracked out uppercase mono is permitted in this build. Here it
- * signals a prepared instrument rather than dressing up a heading.
- */
-/*
- * The header names, in Plex Sans. Mono is narrowed to true data, so the
- * wordmark and the institution read as labels while the reference hash beside
- * them keeps the mono register it earns as an identifier.
- */
-.brief-header-name {
-  font-family: var(--font-plex-sans), system-ui, sans-serif;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--color-brief-ink);
-}
-
-.brief-header-mark {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-brief-signal-dim);
-}
-
-/*
- * Print. The brief alone, on white, with no interface chrome.
- * The first thing a hiring manager does with a good brief is print it.
- */
+/* Print. The account brief alone, on white. */
 @media print {
   html,
   body {
-    background: #fff;
-    color: #000;
-  }
-
-  /* Everything that is not the brief, and every ancestor's siblings, goes. */
-  body > * {
-    display: none;
-  }
-
-  body:has(.account-brief) > *:has(.account-brief) {
-    display: block;
-  }
-
-  main > *:not(:has(.account-brief)) {
-    display: none;
-  }
-
-  .account-brief {
-    border: 0;
-    margin: 0;
-    padding: 0;
-    max-width: none;
-  }
-
-  .account-brief .chip {
-    background: none;
-    color: #000;
-    padding: 0;
-  }
-
-  /* The near-black canvas disappears. Only the paper panel remains. */
-  .brief-canvas {
     background: #fff !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .account-brief,
+  .account-brief * {
+    visibility: visible;
+  }
+  .print-root {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    background: none !important;
+    backdrop-filter: none !important;
+  }
+  .print-root * {
+    box-shadow: none !important;
+  }
+  .account-brief {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none !important;
     padding: 0 !important;
+    color: #000;
+    --label: #000;
+    --secondary: #444;
+    --tertiary: #666;
+    --surface: #fff;
+    --separator: #ccc;
+    --fill: #f2f2f2;
   }
-  .brief-frame::before,
-  .brief-frame::after,
-  .brief-frame > .brief-corner::before,
-  .brief-frame > .brief-corner::after {
-    display: none;
+  .no-print {
+    display: none !important;
   }
-
-  a[href]::after {
-    content: "";
-  }
-}
-
-/*
- * POLISH_SPEC checkpoint B. Two motion beats, and only two.
- *
- * The first is the landing hero, once on first paint. The second is the
- * drill-down gate cascade, which narrowly revises DESIGN_SPEC_V2 section 4's
- * "nothing else moves" rule. See the comment in Drilldown.tsx for why.
- *
- * prefers-reduced-motion collapses both to their final state, through the
- * reduce block above.
- */
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.mount-rise {
-  animation: rise-in 400ms ease-out both;
-}
-
-@keyframes cascade-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.cascade-in {
-  animation: cascade-in 240ms ease-out both;
 }

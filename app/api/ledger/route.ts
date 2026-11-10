@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
       encodeEvent({
         kind: "error",
         message:
-          "The ledger did not generate. Pick an institution, or paste a filing.",
+          "Nothing to analyze. Choose an institution, or paste a filing.",
       }),
       { status: 400, headers: sseHeaders() }
     );
@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
       encodeEvent({
         kind: "error",
         message:
-          "The ledger did not generate. No model key is configured. Set ANTHROPIC_API_KEY, or pick an archetype instead.",
+          "Filing analysis is unavailable right now. Choose an institution instead.",
       }),
       { status: 503, headers: sseHeaders() }
     );
@@ -301,7 +301,7 @@ export async function POST(request: NextRequest) {
               ? "The model pass took too long and was stopped. These are corpus defaults, unadjusted."
               : chosen
                 ? "The model pass did not complete. These are corpus defaults, unadjusted."
-                : "The filing did not classify. This is the regional bank on corpus defaults. Pick an institution above."
+                : "The filing could not be matched to an institution type. Showing the regional bank on default figures."
           ),
         });
       } finally {
@@ -467,11 +467,11 @@ function resolvePayload(
   } else if (raw.segmentId) {
     segmentId = raw.segmentId;
     fallbackNote =
-      "The filing classified weakly. This is the closest archetype. Figures are its defaults where the text was silent.";
+      "This filing was a loose match. Showing the closest institution type, with its defaults wherever the text was silent.";
   } else {
     segmentId = FALLBACK_SEGMENT;
     fallbackNote =
-      "The filing did not classify. This is the regional bank on corpus defaults. Pick an institution above.";
+      "The filing could not be matched to an institution type. Showing the regional bank on default figures.";
   }
 
   const institution = INSTITUTIONS_BY_ID[segmentId]!;

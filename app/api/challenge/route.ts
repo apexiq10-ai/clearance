@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({
       challenges: [],
-      note: "The challenge did not run. No model key is configured.",
+      note: "The stress test is unavailable right now. The figures are unchanged.",
     });
   }
 
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       console.warn(`[challenge] JSON parse failed: ${extracted.error}`);
       return Response.json({
         challenges: [],
-        note: "The challenge did not return a usable answer. The ledger is unchanged.",
+        note: "The stress test did not return a usable answer. The figures are unchanged.",
       });
     }
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       );
       return Response.json({
         challenges: [],
-        note: "The challenge did not return a usable answer. The ledger is unchanged.",
+        note: "The stress test did not return a usable answer. The figures are unchanged.",
       });
     }
 
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       challenges: kept,
       note:
         kept.length === 0
-          ? "The committee did not find a defensible revision. The ledger is unchanged."
+          ? "The risk committee found no defensible revision. Every figure held."
           : null,
     });
   } catch (error) {
@@ -160,8 +160,8 @@ export async function POST(request: NextRequest) {
     return Response.json({
       challenges: [],
       note: timedOut
-        ? "The challenge took too long and was stopped. The ledger is unchanged."
-        : "The challenge did not run. The ledger is unchanged.",
+        ? "The stress test took too long and was stopped. The figures are unchanged."
+        : "The stress test did not run. The figures are unchanged.",
     });
   } finally {
     clearTimeout(timer);

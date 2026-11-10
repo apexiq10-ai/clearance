@@ -71,14 +71,14 @@ function valueMethod(
   const contacts = row.annualVolumeLow * share * (1 - penalty);
   const label =
     column === "permitted"
-      ? `permitted share of ${Math.round(row.permittedPct * 100)} percent`
-      : `spread of ${Math.round((row.ceilingPct - row.permittedPct) * 100)} percent between permitted and ceiling`;
+      ? `share automatable today of ${Math.round(row.permittedPct * 100)} percent`
+      : `share of ${Math.round((row.ceilingPct - row.permittedPct) * 100)} percent waiting on approval, the gap between today and the ceiling`;
 
   return (
     `${n(row.annualVolumeLow)} contacts a year at the low end, multiplied by a ${label}, ` +
     `less a ${Math.round(penalty * 100)} percent repeat contact penalty, gives ${n(contacts)} contacts. ` +
     `Each is worth ${money(perContact)}, being the low fully loaded contact cost of ${money(cost.low)} ` +
-    `less the high contained interaction cost of ${money(economics.costPerContainedInteraction.high)}. ` +
+    `less the high cost of an AI-handled contact of ${money(economics.costPerContainedInteraction.high)}. ` +
     `That pairing is the most conservative available in the corpus.`
   );
 }
@@ -103,9 +103,9 @@ export function lockedValueProvenance(
     return {
       class: "inferred",
       method:
-        "This institution already evidences every control gate this workload requires, " +
-        "so there is no gate holding value back and the permitted share is raised to the ceiling. " +
-        "Locked value is zero because there is nothing to name as the thing locking it.",
+        "This institution already evidences every control this workload requires, " +
+        "so nothing is holding value back and today's share is raised to the ceiling. " +
+        "Nothing is waiting on approval.",
     };
   }
   return {
@@ -121,7 +121,7 @@ export function totalProvenance(
   return {
     class: "inferred",
     method:
-      `The sum of the ${column} column across ${rowCount} workloads, each computed from the ` +
+      `The sum of ${column === "permitted" ? "cleared-today" : "waiting-on-approval"} value across ${rowCount} workloads, each computed from the ` +
       `low end of every range in the corpus. The high end of every range is carried for display ` +
       `on individual rows and is never summed into this figure.`,
   };

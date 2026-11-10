@@ -1,76 +1,44 @@
-import type { Metadata } from "next";
-import {
-  Archivo,
-  IBM_Plex_Mono,
-  IBM_Plex_Sans,
-  Instrument_Serif,
-} from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-/** Headings and row names. */
-const archivo = Archivo({
+/** The fallback where SF Pro is not installed. Apple devices use the system face. */
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["500", "600"],
-  variable: "--font-archivo",
+  variable: "--font-inter",
   display: "swap",
 });
 
-/** Body prose and method text. The default. */
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-plex-sans",
-  display: "swap",
-});
-
-/** All numerals, all citations, all rail findings, all chips. */
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-plex-mono",
-  display: "swap",
-});
-
-/** The thesis line and the two totals only. */
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-instrument-serif",
-  display: "swap",
-});
-
-/**
- * The mark as an inline data URI, so the favicon needs no asset pipeline and
- * no second source of truth. Literal hex rather than tokens, because a favicon
- * has no stylesheet to read them from.
- */
+/** The mark: a short solid capsule over a full, lighter one. Cleared over waiting. */
 const FAVICON =
   "data:image/svg+xml," +
   encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 15">' +
-      '<defs><pattern id="h" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
-      '<rect width="4" height="4" fill="#F1ECFF"/><rect width="2" height="4" fill="#7C52FF" opacity="0.35"/>' +
-      "</pattern></defs>" +
-      '<rect width="18" height="6" fill="#7C52FF"/>' +
-      '<rect y="9" width="28" height="6" fill="url(#h)"/>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
+      '<rect width="32" height="32" rx="8" fill="#5b4cf0"/>' +
+      '<rect x="7" y="10" width="12" height="5" rx="2.5" fill="#fff"/>' +
+      '<rect x="7" y="17.5" width="18" height="5" rx="2.5" fill="#fff" fill-opacity="0.45"/>' +
       "</svg>"
   );
 
 export const metadata: Metadata = {
-  title: "Clearance",
+  title: "Clearance: AI readiness for financial institutions",
   description:
-    "Contact centre AI opportunity at a financial institution, split into value capturable under controls evidenced today and value held behind named control gates.",
+    "Size the contact center AI opportunity at a bank, credit union, lender or insurer. See what controls allow today, and the exact approvals that unlock the rest.",
   icons: { icon: [{ url: FAVICON, type: "image/svg+xml" }] },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f5f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable} ${instrumentSerif.variable}`}
-    >
+    <html lang="en" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

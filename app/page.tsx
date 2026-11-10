@@ -1,26 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
-import { Chooser } from "../components/Chooser";
-import { LedgerTable } from "../components/LedgerTable";
-import { ReasoningRail } from "../components/ReasoningRail";
+import { Building } from "../components/Building";
+import { Dashboard } from "../components/Dashboard";
+import { Home } from "../components/Home";
 import { INSTITUTIONS_BY_ID } from "../corpus/institutions";
 import { ECONOMICS } from "../corpus/economics";
 import type { EconomicsConstants, SegmentId } from "../corpus/types";
 import {
   applyDriverOverrides,
   corpusDefaultLedger,
-  corpusTrace,
   ledgerFromRows,
   type DriverOverride,
   type TraceLine,
 } from "../lib/defaults";
 import { buildSequence } from "../lib/sequence";
 import { readEventStream } from "../lib/stream";
-import { useReducedMotion } from "../lib/motion";
 
-type Screen = "question" | "building" | "ledger";
+type Screen = "home" | "building" | "dashboard";
 
 interface ModelRow {
   workloadId: string;
@@ -37,36 +35,19 @@ interface LedgerPayload {
   rows: ModelRow[];
 }
 
-/**
- * The reasoning rail is the only orchestrated moment in the interface.
- *
- * On the archetype path there is no network at all, so the corpus trace is
- * replayed locally at this interval. The pacing is a deliberate reading rhythm,
- * not latency, and the ledger underneath it is already computed and on screen.
- * On the filing path the model's own lines arrive on their own schedule.
- */
-const TRACE_INTERVAL_MS = 170;
-
 export default function Page() {
-  const [screen, setScreen] = useState<Screen>("question");
+  const [screen, setScreen] = useState<Screen>("home");
   const [institutionId, setInstitutionId] = useState<SegmentId | null>(null);
-  const [filing, setFiling] = useState("");
   const [economics, setEconomics] = useState<EconomicsConstants>(ECONOMICS);
-
   const [trace, setTrace] = useState<TraceLine[]>([]);
   const [payload, setPayload] = useState<LedgerPayload | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-
-  const reduced = useReducedMotion();
-  const requestId = useRef(0);
-  // Which institution the local trace replay has already been started for.
-  const replayedFor = useRef<string | null>(null);
-  // True once the model has streamed a line of its own, so the local replay
-  // does not overwrite it.
-  const [modelTrace, setModelTrace] = useState(false);
-  // The in flight request, so a new one can cancel it rather than racing it.
-  const inFlight = useRef<AbortController | null>(null);
   const [pending, setPending] = useState(false);
+  // True only when the figures on screen were actually read from a filing.
+  const [fromFiling, setFromFiling] = useState(false);
+
+  const requestId = useRef(0);
+  const inFlight = useRef<AbortController | null>(null);
 
   const institution = useMemo(() => {
     const id = payload?.segmentId ?? institutionId;
@@ -75,8 +56,7 @@ export default function Page() {
     return applyDriverOverrides(archetype, payload?.driverOverrides ?? []);
   }, [payload, institutionId]);
 
-  // Repricing runs through the same compute path as the first render. There is
-  // no second code path for an edited assumption.
+  // Repricing runs through the same compute path as the first render.
   const computed = useMemo(() => {
     if (!institution) return null;
     return payload
@@ -89,44 +69,36 @@ export default function Page() {
     [institution, computed, economics]
   );
 
-  /**
-   * Picking one of the four archetypes renders instantly from the corpus. No
-   * fetch, no stream, no model.
-   *
-   * This supersedes BUILD_PROMPT section 4's per institution model adjustment
-   * for the archetype path. Contract A now serves exactly one trigger, the
-   * pasted filing, which is the only input the corpus cannot already answer.
-   */
-  function selectArchetype(id: SegmentId) {
-    // Abandon anything the filing path left running.
+  function cancelInFlight() {
     requestId.current++;
     inFlight.current?.abort();
     inFlight.current = null;
     setPending(false);
+  }
 
+  /** An archetype renders instantly from the corpus. No network, no model. */
+  function selectArchetype(id: SegmentId) {
+    cancelInFlight();
     setInstitutionId(id);
     setPayload(null);
     setNotice(null);
     setTrace([]);
-    setModelTrace(false);
-    replayedFor.current = null;
-    setFiling("");
-    setScreen("ledger");
+    setFromFiling(false);
+    setScreen("dashboard");
+    window.scrollTo({ top: 0 });
   }
 
-  async function generate(id: SegmentId | null, excerpt: string) {
+  /** A pasted filing is the one input the corpus cannot answer, so it goes to the model. */
+  async function analyzeFiling(excerpt: string, id: SegmentId | null) {
     const mine = ++requestId.current;
-
-    // Cancel whatever is still running before starting anything new.
     inFlight.current?.abort();
     const controller = new AbortController();
     inFlight.current = controller;
 
+    setInstitutionId(id);
     setPending(true);
     setScreen("building");
     setTrace([]);
-    setModelTrace(false);
-    replayedFor.current = null;
     setPayload(null);
     setNotice(null);
 
@@ -140,11 +112,9 @@ export default function Page() {
         body: JSON.stringify({ institutionId: id, filing: excerpt }),
         signal: controller.signal,
       });
-
       await readEventStream(response, (event) => {
         if (requestId.current !== mine) return;
         if (event.kind === "trace") {
-          setModelTrace(true);
           setTrace((t) => [...t, { label: event.label, value: event.value }]);
         } else if (event.kind === "result") {
           received = event.payload as LedgerPayload;
@@ -153,9 +123,8 @@ export default function Page() {
         }
       });
     } catch (error) {
-      // A request we cancelled ourselves is not a failure to report.
       if (error instanceof DOMException && error.name === "AbortError") return;
-      message = "The ledger did not generate. Pick an archetype instead.";
+      message = "The filing could not be read. Showing the closest archetype instead.";
     } finally {
       if (requestId.current === mine) {
         setPending(false);
@@ -165,11 +134,12 @@ export default function Page() {
 
     if (requestId.current !== mine) return;
 
-    // Never an error state with no ledger. If the model gave us nothing usable,
-    // the closest archetype's corpus defaults render, and the notice says so.
+    const readFromFiling = received !== null;
+
+    // Never an empty screen. If the model gave nothing usable, the closest
+    // archetype renders on corpus defaults and the notice says so.
     if (!received) {
-      const archetype = (id ? INSTITUTIONS_BY_ID[id] : undefined) ??
-        INSTITUTIONS_BY_ID["regional-bank"]!;
+      const archetype = (id ? INSTITUTIONS_BY_ID[id] : undefined) ?? INSTITUTIONS_BY_ID["regional-bank"]!;
       received = {
         segmentId: archetype.id,
         driverOverrides: [],
@@ -183,72 +153,33 @@ export default function Page() {
       message =
         message ??
         (id
-          ? "The model pass did not complete. These are corpus defaults, unadjusted."
-          : "The filing did not classify. This is the regional bank on corpus defaults. Pick an institution above.");
+          ? "The analysis did not complete. These are the archetype's defaults."
+          : "The filing could not be classified. Showing the regional bank on defaults.");
     }
 
+    setFromFiling(readFromFiling);
     setPayload(received);
     setNotice(message);
-    setScreen("ledger");
+    setScreen("dashboard");
+    window.scrollTo({ top: 0 });
   }
 
-  /**
-   * Replay the corpus trace locally when the model did not supply one.
-   *
-   * trace.length must not be a dependency here. It used to be both a dependency
-   * and the early return guard, so the first timer firing changed the length,
-   * re-ran the effect, and the cleanup cancelled every remaining timer before
-   * the guard returned. Exactly one line ever rendered. A ref records which
-   * institution the replay has started for, so the timer chain is created once
-   * and runs to completion.
-   */
-  useEffect(() => {
-    if (screen !== "ledger" || !institution || modelTrace) return;
-    if (replayedFor.current === institution.id) return;
-    replayedFor.current = institution.id;
-
-    const lines = corpusTrace(institution);
-    if (reduced) {
-      setTrace(lines);
-      return;
-    }
-    const timers = lines.map((_, i) =>
-      setTimeout(() => setTrace(lines.slice(0, i + 1)), TRACE_INTERVAL_MS * (i + 1))
-    );
-    return () => timers.forEach(clearTimeout);
-  }, [screen, institution, modelTrace, reduced]);
-
-  function startOver() {
-    requestId.current++;
-    inFlight.current?.abort();
-    inFlight.current = null;
-    setPending(false);
-    setScreen("question");
+  function goHome() {
+    cancelInFlight();
+    setScreen("home");
     setInstitutionId(null);
-    setFiling("");
     setTrace([]);
     setPayload(null);
     setNotice(null);
     setEconomics(ECONOMICS);
+    window.scrollTo({ top: 0 });
   }
 
-  // The header is present on every screen, so the reader is always inside one
-  // instrument rather than four stacked pages.
-  if (screen === "question") {
+  if (screen === "home") {
     return (
       <>
-        <AppHeader onHome={startOver} width="narrow" />
-        <Chooser
-          filing={filing}
-          onFilingChange={setFiling}
-          pending={pending}
-          onPick={selectArchetype}
-          onBuildFromFiling={() => {
-            setInstitutionId(null);
-            void generate(null, filing.trim());
-            setFiling("");
-          }}
-        />
+        <AppHeader onHome={goHome} />
+        <Home onPick={selectArchetype} onAnalyze={analyzeFiling} pending={pending} />
       </>
     );
   }
@@ -256,36 +187,25 @@ export default function Page() {
   if (screen === "building" || !institution || !computed) {
     return (
       <>
-        <AppHeader onHome={startOver} />
-        <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-          <header className="border-b border-hairline pb-6">
-            <h1 className="font-sans text-xl font-semibold leading-tight text-ink sm:text-2xl">
-              {institution?.name ?? "Reading the filing"}
-            </h1>
-          </header>
-          <div className="mt-10 lg:grid lg:grid-cols-[15rem_1fr] lg:gap-14">
-            <ReasoningRail lines={trace} visible={trace.length} />
-          </div>
-        </main>
+        <AppHeader onHome={goHome} />
+        <Building lines={trace} />
       </>
     );
   }
 
   return (
-    <>
-      <AppHeader onHome={startOver} />
-      <LedgerTable
-        ledger={computed.ledger}
-        institution={institution}
-        economics={economics}
-        trace={trace}
-        phases={phases}
-        notice={notice ?? payload?.fallbackNote ?? payload?.classificationNote ?? null}
-        onEconomicsChange={setEconomics}
-        onEconomicsReset={() => setEconomics(ECONOMICS)}
-        economicsDirty={economics !== ECONOMICS}
-        onStartOver={startOver}
-      />
-    </>
+    <Dashboard
+      ledger={computed.ledger}
+      institution={institution}
+      economics={economics}
+      phases={phases}
+      notice={notice ?? payload?.fallbackNote ?? payload?.classificationNote ?? null}
+      fromFiling={fromFiling}
+      onEconomicsChange={setEconomics}
+      onEconomicsReset={() => setEconomics(ECONOMICS)}
+      economicsDirty={economics !== ECONOMICS}
+      onSelectInstitution={selectArchetype}
+      onHome={goHome}
+    />
   );
 }

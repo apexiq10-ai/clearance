@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
         payload: {
           deterministic,
           brief: null,
-          note: "The generated sections did not build. No model key is configured. Everything computed is unchanged.",
+          note: "The written sections are unavailable right now. Everything computed from the figures is complete.",
         },
       }),
       { headers: sseHeaders() }
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
             brief: null,
             note: timedOut
               ? "The generated sections took too long and were stopped. Everything computed is unchanged."
-              : "The generated sections did not build. Everything computed is unchanged.",
+              : "The written sections did not finish. Everything computed from the figures is complete.",
           },
         });
       } finally {

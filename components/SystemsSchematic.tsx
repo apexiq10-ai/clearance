@@ -2,42 +2,13 @@
 
 import { useState } from "react";
 import type { SchematicModel } from "../lib/brief";
+import { CheckIcon, LockIcon } from "./Icons";
 
 /**
- * THE SYSTEMS SCHEMATIC. BRIEF_SPEC_V2 section 3.
- *
- * Deterministic SVG built from corpus data, never generated. Fixed column
- * positions from array order, so the same institution draws the same diagram
- * every render. No force layout, no auto arrangement.
- *
- * Visual encoding is the ledger's own, redrawn as a graph instead of a bar:
- * evidenced gates are solid violet, locked gates are violet-tint under the same
- * 2px hatch as the ledger bars, and a locked gate's connecting line is dashed.
+ * The institution's stack and the controls that sit on it. Deterministic,
+ * built from corpus data and never generated. Each control lists the systems
+ * it touches, so the dependency reads as text rather than as a web of lines.
  */
-
-const SYS_W = 96;
-const SYS_H = 34;
-const GATE_W = 84;
-const GATE_H = 40;
-const PAD = 12;
-
-function wrap(text: string, perLine: number, maxLines: number): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (next.length > perLine && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = next;
-    }
-  }
-  if (current) lines.push(current);
-  return lines.slice(0, maxLines);
-}
-
 export function SystemsSchematic({
   model,
   onSelectGate,
@@ -47,214 +18,87 @@ export function SystemsSchematic({
 }) {
   const [active, setActive] = useState<string | null>(null);
   const gate = model.gates.find((g) => g.id === active) ?? null;
+  const systemName = new Map(model.systems.map((s) => [s.key, s.platform.split(",")[0]!]));
+  const touches = (gateId: string) =>
+    model.edges.filter((e) => e.gateId === gateId).map((e) => systemName.get(e.systemKey) ?? e.systemKey);
 
-  const columns = Math.max(model.systems.length, model.gates.length);
-  const width = Math.max(columns * (GATE_W + PAD) + PAD, 640);
-  const sysY = 26;
-  const gateY = 190;
-  const height = gateY + GATE_H + 46;
-
-  const sysStep = width / model.systems.length;
-  const gateStep = width / model.gates.length;
-  const sysX = (i: number) => sysStep * i + sysStep / 2;
-  const gateX = (i: number) => gateStep * i + gateStep / 2;
-
-  const sysIndex = new Map(model.systems.map((s, i) => [s.key, i]));
-  const gateIndex = new Map(model.gates.map((g, i) => [g.id, i]));
+  const ordered = [...model.gates].sort(
+    (a, b) => Number(b.evidenced) - Number(a.evidenced) || a.phase - b.phase
+  );
 
   return (
     <div>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        width="100%"
-        role="img"
-        aria-label={`Systems and control gates at this institution. ${model.evidencedCount} gates evidenced, ${model.lockedCount} still locked.`}
-        className="block h-auto w-full"
-      >
-        <defs>
-          {/* The same 2px diagonal hatch the ledger bars carry. */}
-          <pattern
-            id="schematic-hatch"
-            width="4"
-            height="4"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(45)"
-          >
-            <rect width="4" height="4" fill="var(--color-violet-tint)" />
-            <rect width="2" height="4" fill="var(--color-violet)" opacity="0.35" />
-          </pattern>
-        </defs>
+      <p className="text-[12px] font-medium text-tertiary">Stack</p>
+      <ul className="mt-2 flex flex-wrap gap-2">
+        {model.systems.map((s) => (
+          <li key={s.key} className="rounded-[10px] bg-fill px-3 py-1.5">
+            <span className="block text-[13px] font-semibold leading-tight text-label">
+              {s.platform.split(",")[0]}
+            </span>
+            <span className="block text-[11px] leading-tight text-tertiary">{s.role}</span>
+          </li>
+        ))}
+      </ul>
 
-        {/* Edges first, so nodes sit over them. */}
-        {model.edges.map((edge) => {
-          const si = sysIndex.get(edge.systemKey);
-          const gi = gateIndex.get(edge.gateId);
-          if (si === undefined || gi === undefined) return null;
-          const locked = !model.gates[gi]!.evidenced;
-          return (
-            <line
-              key={`${edge.gateId}-${edge.systemKey}`}
-              x1={sysX(si)}
-              y1={sysY + SYS_H}
-              x2={gateX(gi)}
-              y2={gateY}
-              stroke={locked ? "var(--color-violet)" : "var(--color-ink)"}
-              strokeWidth={1}
-              strokeOpacity={locked ? 0.45 : 0.35}
-              strokeDasharray={locked ? "3 3" : undefined}
-            />
-          );
-        })}
-
-        {model.systems.map((system, i) => {
-          const x = sysX(i) - SYS_W / 2;
-          return (
-            <g key={system.key}>
-              <rect
-                x={x}
-                y={sysY}
-                width={SYS_W}
-                height={SYS_H}
-                fill="var(--color-paper)"
-                stroke="var(--color-hairline)"
-                strokeWidth={1}
-              />
-              <text
-                x={sysX(i)}
-                y={sysY + 14}
-                textAnchor="middle"
-                fontSize={11}
-                fill="var(--color-ink)"
-                className="font-mono"
-              >
-                {system.platform.length > 15
-                  ? system.platform.slice(0, 14) + "…"
-                  : system.platform}
-              </text>
-              <text
-                x={sysX(i)}
-                y={sysY + 27}
-                textAnchor="middle"
-                fontSize={9}
-                fill="var(--color-slate)"
-                className="font-mono"
-              >
-                {system.role}
-              </text>
-            </g>
-          );
-        })}
-
-        {model.gates.map((g, i) => {
-          const x = gateX(i) - GATE_W / 2;
-          const lines = wrap(g.short, 13, 3);
-          return (
-            <g
-              key={g.id}
-              tabIndex={0}
-              role="button"
-              aria-label={`${g.name}. ${g.evidenced ? "Evidenced today" : "Locked"}. Phase ${g.phase}.`}
+      <p className="mt-5 text-[12px] font-medium text-tertiary">
+        Controls that apply here · {model.evidencedCount} of {model.gates.length} in place
+      </p>
+      <ul className="mt-2 grid gap-2 sm:grid-cols-3">
+        {ordered.map((g) => (
+          <li key={g.id}>
+            <button
+              type="button"
               onMouseEnter={() => setActive(g.id)}
               onMouseLeave={() => setActive(null)}
               onFocus={() => setActive(g.id)}
               onBlur={() => setActive(null)}
               onClick={() => onSelectGate?.(g.id)}
-              onKeyDown={(e) => {
-                if (e.key !== "Enter" && e.key !== " ") return;
-                e.preventDefault();
-                onSelectGate?.(g.id);
-              }}
-              style={{ cursor: onSelectGate ? "pointer" : "default" }}
+              className={`flex h-full w-full flex-col rounded-[12px] p-3 text-left transition-colors ${
+                g.evidenced
+                  ? "bg-accent text-white"
+                  : "bg-surface ring-1 ring-[var(--accent-soft)] hover:bg-accent-wash"
+              }`}
             >
-              <rect
-                x={x}
-                y={gateY}
-                width={GATE_W}
-                height={GATE_H}
-                fill={g.evidenced ? "var(--color-violet)" : "url(#schematic-hatch)"}
-                stroke={
-                  active === g.id ? "var(--color-ink)" : "var(--color-violet)"
-                }
-                strokeWidth={active === g.id ? 1.5 : 1}
-              />
-              {lines.map((line, li) => (
-                <text
-                  key={li}
-                  x={gateX(i)}
-                  y={gateY + 14 + li * 10}
-                  textAnchor="middle"
-                  fontSize={10}
-                  fill={g.evidenced ? "var(--color-paper)" : "var(--color-ink)"}
-                  className="font-mono"
+              <span className="flex items-center justify-between gap-2">
+                <span
+                  className={`text-[11px] font-medium ${g.evidenced ? "text-white/80" : "text-accent"}`}
                 >
-                  {line}
-                </text>
-              ))}
-              {/* Phase as a corner mark, not inline text. */}
-              <text
-                x={x + GATE_W - 4}
-                y={gateY + 10}
-                textAnchor="end"
-                fontSize={9}
-                fill={g.evidenced ? "var(--color-paper)" : "var(--color-slate)"}
-                className="font-mono"
+                  {g.evidenced ? "In place" : `Step ${g.phase}`}
+                </span>
+                {g.evidenced ? (
+                  <CheckIcon className="h-3.5 w-3.5 text-white/80" />
+                ) : (
+                  <LockIcon className="h-3.5 w-3.5 text-accent" />
+                )}
+              </span>
+              <span
+                className={`mt-1 text-[13px] font-semibold leading-snug first-letter:uppercase ${
+                  g.evidenced ? "text-white" : "text-label"
+                }`}
               >
-                {g.phase}
-              </text>
-            </g>
-          );
-        })}
+                {g.short}
+              </span>
+              <span
+                className={`mt-1 text-[11px] leading-snug ${g.evidenced ? "text-white/70" : "text-tertiary"}`}
+              >
+                {touches(g.id).join(" · ") || "No system dependency"}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
 
-        <text
-          x={0}
-          y={height - 24}
-          fontSize={10}
-          fill="var(--color-slate)"
-          className="font-mono"
-        >
-          solid, evidenced today
-        </text>
-        <text
-          x={220}
-          y={height - 24}
-          fontSize={10}
-          fill="var(--color-slate)"
-          className="font-mono"
-        >
-          hatched, still locked
-        </text>
-        <text
-          x={400}
-          y={height - 24}
-          fontSize={10}
-          fill="var(--color-slate)"
-          className="font-mono"
-        >
-          dashed, a locked gate above
-        </text>
-      </svg>
-
-      {/* Provenance style detail block, in the flow rather than floating. */}
-      <div className="mt-3 min-h-[4.5rem] border border-hairline bg-paper p-3">
+      <div className="no-print mt-3 min-h-[4.25rem] rounded-[12px] bg-fill p-3.5">
         {gate ? (
           <>
-            <p className="font-mono text-xs text-ink">
-              {gate.name}
-              <span className="ml-2 chip">
-                {gate.evidenced ? "evidenced" : `phase ${gate.phase}`}
-              </span>
-            </p>
-            <p className="mt-1.5 max-w-[85ch] font-body text-xs leading-relaxed text-slate">
-              {gate.requirement}
-            </p>
-            <p className="mt-1.5 max-w-[85ch] font-body text-xs leading-relaxed text-slate">
-              {gate.ownerLabel} owns it. {gate.unlockPath}
+            <p className="text-[13px] font-semibold text-label">{gate.name}</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-secondary">
+              {gate.requirement} {gate.ownerLabel.charAt(0).toUpperCase() + gate.ownerLabel.slice(1)} owns it.
             </p>
           </>
         ) : (
-          <p className="font-mono text-xs text-slate">
-            {model.evidencedCount} of {model.gates.length} gates evidenced today.
-            Hover a gate for detail.
+          <p className="text-[13px] text-secondary">
+            Hover a control for detail. Select one to see the workloads it holds.
           </p>
         )}
       </div>
