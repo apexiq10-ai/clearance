@@ -97,7 +97,7 @@ export interface Regulation {
    * written for a product leader and not a lawyer.
    */
   agentImplication: string;
-  /** Hard clocks the agent must start, honour, or escalate against. */
+  /** Hard clocks the agent must start, honor, or escalate against. */
   clocks?: RegulatoryClock[];
 }
 
@@ -244,7 +244,7 @@ export interface WorkloadArchetype {
 
   /**
    * One sentence, written for someone who has never worked in a contact
-   * centre. What does the customer actually say. Not a summary of the
+   * center. What does the customer actually say. Not a summary of the
    * workload, a translation of it. Distinct from operatorNote, which is
    * written for a servicing VP who already knows this domain.
    */
@@ -308,7 +308,7 @@ export interface InstitutionDrivers {
 export interface InstitutionArchetype {
   id: SegmentId;
   name: string;
-  /** One line a banker would recognise as their own institution. */
+  /** One line a banker would recognize as their own institution. */
   profile: string;
   regulators: string[];
   drivers: InstitutionDrivers;

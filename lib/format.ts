@@ -11,7 +11,7 @@ export const usd = (n: number) =>
 /**
  * Headline figures. A total under one million reads as a full dollar figure,
  * because "$0.5M" is both less precise and less credible than "$450,000" in
- * front of someone who runs a contact centre budget.
+ * front of someone who runs a contact center budget.
  */
 export const headlineUsd = (n: number) =>
   Math.abs(n) < 1_000_000

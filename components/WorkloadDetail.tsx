@@ -137,8 +137,8 @@ export function WorkloadDetail({
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--positive)_14%,transparent)] text-positive">
             <CheckIcon className="h-3.5 w-3.5" />
           </span>
-          {segmentName(institution)} already evidences every control this
-          workload needs. It can reach its ceiling today.
+          Every control this workload needs is already in place. It is at full
+          potential today.
         </div>
       ) : (
         <ol className="mt-4 space-y-3">
@@ -165,11 +165,11 @@ export function WorkloadDetail({
                   <p className="mt-3 text-[15px] leading-relaxed text-secondary">{gate.requirement}</p>
                   <div className="mt-4 rounded-[14px] bg-accent-wash p-4">
                     <p className="text-[12px] font-semibold text-accent">How to clear it</p>
-                    <p className="mt-1 text-[15px] leading-relaxed text-label">{gate.commercialMotion}</p>
+                    <p className="mt-1 text-[15px] leading-relaxed text-label">{gate.unlockPath}</p>
                   </div>
                   {gate.residualHumanGate ? (
                     <p className="mt-3 text-[13px] leading-relaxed text-tertiary">
-                      Still needs a human after approval: {gate.residualHumanGate}
+                      Still needs a person after approval: {gate.residualHumanGate}
                     </p>
                   ) : null}
                 </div>
@@ -194,10 +194,6 @@ export function WorkloadDetail({
   );
 }
 
-function segmentName(institution: InstitutionArchetype): string {
-  const n = institution.name.split(",")[0] ?? institution.name;
-  return `This ${n.toLowerCase()}`;
-}
 
 // ---------------------------------------------------------------------------
 

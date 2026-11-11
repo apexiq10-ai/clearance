@@ -1,29 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { INSTITUTIONS } from "../corpus/institutions";
 import type { SegmentId } from "../corpus/types";
 import { corpusDefaultLedger, lockedGateIds } from "../lib/defaults";
 import { SEGMENT_SHORT, SEGMENT_TAGLINE, assetsLabel, compactUsd } from "../lib/present";
-import { ArrowRight, DocIcon, SegmentIcon } from "./Icons";
-import { Sheet } from "./Sheet";
-import { SAMPLE_FILING } from "../lib/prebuilt";
+import { ArrowRight, SegmentIcon } from "./Icons";
 
 /**
- * Home. One headline, four institutions that already show their own numbers,
- * and one secondary path for a pasted filing.
+ * Home. One headline and four institutions that already show their own numbers.
  */
-export function Home({
-  onPick,
-  onAnalyze,
-  pending,
-}: {
-  onPick: (id: SegmentId) => void;
-  /** Analyze a pasted filing, optionally pinned to a known segment. */
-  onAnalyze: (filing: string, segment: SegmentId | null) => void;
-  pending: boolean;
-}) {
-  const [filingOpen, setFilingOpen] = useState(false);
+export function Home({ onPick }: { onPick: (id: SegmentId) => void }) {
 
   const cards = useMemo(
     () =>
@@ -106,145 +93,6 @@ export function Home({
         ))}
       </section>
 
-      <section
-        className="fade-up mt-6"
-        style={{ animationDelay: "240ms" }}
-      >
-        <button
-          type="button"
-          onClick={() => setFilingOpen(true)}
-          className="card group flex w-full items-center gap-4 p-5 text-left transition-colors hover:bg-[color-mix(in_srgb,var(--surface)_92%,var(--accent))] sm:p-6"
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-fill text-secondary">
-            <DocIcon className="h-6 w-6" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[17px] font-semibold tracking-[-0.015em] text-label">
-              Analyze a real institution
-            </span>
-            <span className="mt-0.5 block text-[14px] text-secondary">
-              Paste a call report, a 5300 or an annual statement. Clearance reads
-              it and builds the same view.
-            </span>
-          </span>
-          <ArrowRight className="h-5 w-5 shrink-0 text-tertiary transition-transform duration-300 group-hover:translate-x-1" />
-        </button>
-      </section>
-
-      <p className="mt-16 text-center text-[13px] text-tertiary">
-        Every figure is sourced. Select any number to see where it comes from.
-      </p>
-
-      <FilingSheet
-        open={filingOpen}
-        onClose={() => setFilingOpen(false)}
-        pending={pending}
-        onSubmit={(text, segment) => {
-          setFilingOpen(false);
-          onAnalyze(text, segment);
-        }}
-      />
     </main>
-  );
-}
-
-function FilingSheet({
-  open,
-  onClose,
-  onSubmit,
-  pending,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (filing: string, segment: SegmentId | null) => void;
-  pending: boolean;
-}) {
-  const [text, setText] = useState("");
-  const [segment, setSegment] = useState<SegmentId | null>(null);
-  const ready = text.trim().length > 40;
-
-  return (
-    <Sheet open={open} onClose={onClose} label="Analyze a filing">
-      <div className="px-6 pb-8 pt-0 sm:px-10">
-        <h2 className="display text-[34px] font-semibold text-label">Analyze a filing</h2>
-        <p className="mt-3 max-w-[48ch] text-[17px] text-secondary">
-          Paste an excerpt from a call report, an NCUA 5300 or an annual
-          statement. Clearance reads the size, the stack and the regulators,
-          then builds the view.
-        </p>
-
-        <label className="mt-8 block">
-          <span className="sr-only">Filing excerpt</span>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={10}
-            autoFocus
-            placeholder="Paste filing text here"
-            className="block w-full resize-none rounded-[16px] bg-surface p-4 text-[15px] leading-[1.5] text-label shadow-[var(--shadow-card)] outline-none ring-1 ring-[var(--separator)] transition-shadow placeholder:text-tertiary focus:ring-[3px] focus:ring-[var(--accent-soft)]"
-          />
-        </label>
-
-        <p className="mt-7 text-[13px] font-semibold text-secondary">Closest match</p>
-        <div className="mt-2.5 flex flex-wrap gap-2">
-          <Chip active={segment === null} onClick={() => setSegment(null)}>
-            Detect automatically
-          </Chip>
-          {INSTITUTIONS.map((i) => (
-            <Chip key={i.id} active={segment === i.id} onClick={() => setSegment(i.id)}>
-              {SEGMENT_SHORT[i.id]}
-            </Chip>
-          ))}
-        </div>
-
-        <div className="mt-10 flex items-center gap-4">
-          <button
-            type="button"
-            disabled={!ready || pending}
-            onClick={() => {
-              onSubmit(text.trim(), segment);
-              setText("");
-            }}
-            className="btn btn-primary h-11 px-6 text-[16px]"
-          >
-            Analyze
-          </button>
-          {ready ? (
-            <span className="text-[13px] text-tertiary">Takes under a minute.</span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setText(SAMPLE_FILING)}
-              className="btn btn-plain h-8 text-[14px]"
-            >
-              Try a sample filing
-            </button>
-          )}
-        </div>
-      </div>
-    </Sheet>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`h-8 rounded-full px-3.5 text-[14px] font-medium transition-colors ${
-        active ? "bg-label text-bg" : "bg-fill text-label hover:bg-fill-strong"
-      }`}
-    >
-      {children}
-    </button>
   );
 }

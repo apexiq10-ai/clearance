@@ -21,9 +21,9 @@ const FAVICON =
   );
 
 export const metadata: Metadata = {
-  title: "Clearance: AI readiness for financial institutions",
+  title: "Clearance: Contact center AI, sized to what's approved",
   description:
-    "Size the contact center AI opportunity at a bank, credit union, lender or insurer. See what controls allow today, and the exact approvals that unlock the rest.",
+    "Size the contact center AI opportunity at a bank, credit union, lender or insurer. See what controls allow today, and the approvals that unlock the rest.",
   icons: { icon: [{ url: FAVICON, type: "image/svg+xml" }] },
 };
 

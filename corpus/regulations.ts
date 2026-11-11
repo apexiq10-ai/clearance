@@ -261,7 +261,7 @@ export const REGULATIONS: Regulation[] = [
     sourceId: "src-sar-confidentiality",
     appliesTo: ["regional-bank", "credit-union", "digital-lender"],
     agentImplication:
-      "An agent must never disclose, confirm, or imply the existence of a suspicious activity report, including by explaining why an account is restricted. This is the clearest example in the corpus of a case where the most helpful possible response is the prohibited one, and it is why fraud workloads cannot be optimised on customer satisfaction.",
+      "An agent must never disclose, confirm, or imply the existence of a suspicious activity report, including by explaining why an account is restricted. This is the clearest example in the corpus of a case where the most helpful possible response is the prohibited one, and it is why fraud workloads cannot be optimized on customer satisfaction.",
   },
   {
     id: "naic-ai-bulletin",

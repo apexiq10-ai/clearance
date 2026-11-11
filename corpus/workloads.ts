@@ -4,7 +4,7 @@ import type { WorkloadArchetype } from "./types";
  * WORKLOAD ARCHETYPES
  *
  * Ten archetypes covering the eleven use cases named in the role definition.
- * Authentication is modelled as its own workload rather than a cross-cutting
+ * Authentication is modeled as its own workload rather than a cross-cutting
  * concern because at most institutions it is genuinely its own call driver,
  * and because it is the workload with the highest ceiling and the shortest
  * unlock path, which makes it the correct phase one recommendation almost
@@ -20,7 +20,7 @@ import type { WorkloadArchetype } from "./types";
  * There is no public source that states the containment ceiling for a Reg E
  * dispute intake, and any corpus claiming otherwise is inventing authority.
  * Every figure is inferred with a stated method, expressed as a range, and
- * totalled at the low end.
+ * totaled at the low end.
  */
 
 export const WORKLOADS: WorkloadArchetype[] = [
@@ -46,7 +46,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from digital banking enrolment rates and typical annual lockout incidence per enrolled user. Range spans institutions with password-only recovery at the high end and passkey or app-based recovery at the low end.",
+            "Modeled from digital banking enrollment rates and typical annual lockout incidence per enrolled user. Range spans institutions with password-only recovery at the high end and passkey or app-based recovery at the low end.",
         },
       },
       inScopeShare: {
@@ -67,7 +67,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from typical knowledge-based verification sequences plus system reset time. Upper bound reflects institutions where reset requires a supervisor or a second system.",
+          "Modeled from typical knowledge-based verification sequences plus system reset time. Upper bound reflects institutions where reset requires a supervisor or a second system.",
       },
     },
     containmentCeiling: {
@@ -76,7 +76,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Highest ceiling in the corpus. The task is deterministic, the outcome is verifiable, and no consumer financial decision is made. Residual is device edge cases and suspected takeover.",
+          "The task is deterministic, the outcome is verifiable, and no consumer financial decision is made. Residual is device edge cases and suspected takeover.",
       },
     },
     containmentPermittedToday: {
@@ -103,7 +103,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       {
         id: "fm-auth-social",
         description:
-          "A social engineering attempt presents as a routine lockout and the agent optimises for resolution.",
+          "A social engineering attempt presents as a routine lockout and the agent optimizes for resolution.",
         mitigation:
           "Velocity and anomaly signals evaluated on the same turn as the intent, with the rail able to refuse a reset the language model would grant.",
         severity: "customer-harm",
@@ -120,7 +120,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
     plainLanguageSummary:
       "I'm locked out of my account and I need in right now.",
     operatorNote:
-      "The highest ceiling and the shortest unlock path in the portfolio. If an institution does only one thing, this is it.",
+      "Every money-movement call starts here. Clear it first and every workload behind it gets easier.",
   },
 
   // -----------------------------------------------------------------------
@@ -145,7 +145,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from active card servicing contact rates including declines, blocks, and disputes. Range reflects portfolio mix, with credit-heavy portfolios at the upper bound.",
+            "Modeled from active card servicing contact rates including declines, blocks, and disputes. Range reflects portfolio mix, with credit-heavy portfolios at the upper bound.",
         },
       },
       inScopeShare: {
@@ -154,7 +154,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Excludes contacts that are primarily fraud triage, which are modelled separately to avoid double counting.",
+            "Excludes contacts that are primarily fraud triage, which are modeled separately to avoid double counting.",
         },
       },
       narrative:
@@ -166,7 +166,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from dispute intake including transaction identification, disclosure, and case creation. Upper bound reflects manual case creation in a separate dispute system.",
+          "Modeled from dispute intake including transaction identification, disclosure, and case creation. Upper bound reflects manual case creation in a separate dispute system.",
       },
     },
     containmentCeiling: {
@@ -239,7 +239,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
     plainLanguageSummary:
       "Someone used my card, and it wasn't me.",
     operatorNote:
-      "The largest locked value in a consumer bank ledger. Not because the agent cannot do it, because provisional credit is a tier one action.",
+      "Most of the value waits on one decision: letting the agent grant provisional credit. Intake and deadline capture can ship first.",
   },
 
   // -----------------------------------------------------------------------
@@ -264,7 +264,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from per-account annual servicing contact rates across voice and digital. Range reflects digital adoption, with heavily branch-oriented institutions at the upper bound.",
+            "Modeled from per-account annual servicing contact rates across voice and digital. Range reflects digital adoption, with heavily branch-oriented institutions at the upper bound.",
         },
       },
       inScopeShare: {
@@ -273,7 +273,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Excludes card, loan, and fraud-driven contacts modelled in their own archetypes.",
+            "Excludes card, loan, and fraud-driven contacts modeled in their own archetypes.",
         },
       },
       narrative:
@@ -285,7 +285,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from single-system lookup and simple maintenance transactions.",
+          "Modeled from single-system lookup and simple maintenance transactions.",
       },
     },
     containmentCeiling: {
@@ -345,7 +345,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
     plainLanguageSummary:
       "I have a question about my account, my balance, or a fee.",
     operatorNote:
-      "Fund the programme here. Do not build the strategy here.",
+      "Usually the largest dollar line. Let it fund the program.",
   },
 
   // -----------------------------------------------------------------------
@@ -370,7 +370,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from annual servicing contacts per serviced loan including escrow cycle spikes. Upper bound reflects portfolios with higher delinquency and therefore higher contact intensity.",
+            "Modeled from annual servicing contacts per serviced loan including escrow cycle spikes. Upper bound reflects portfolios with higher delinquency and therefore higher contact intensity.",
         },
       },
       inScopeShare: {
@@ -379,7 +379,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Excludes delinquency and collections contacts, modelled separately, and excludes origination.",
+            "Excludes delinquency and collections contacts, modeled separately, and excludes origination.",
         },
       },
       narrative:
@@ -391,7 +391,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from servicing platform lookup plus explanation time. Escrow explanations sit at the upper bound.",
+          "Modeled from servicing platform lookup plus explanation time. Escrow explanations sit at the upper bound.",
       },
     },
     containmentCeiling: {
@@ -425,14 +425,14 @@ export const WORKLOADS: WorkloadArchetype[] = [
         platforms: ["ICE Mortgage Technology MSP", "Sagent", "FICS", "core-native consumer lending"],
         accessRequired: "read",
         integrationNote:
-          "Payoff figures are calculated by the servicing platform and are date-sensitive. A quote generated outside the platform is a quote the institution may have to honour and cannot reconcile.",
+          "Payoff figures are calculated by the servicing platform and are date-sensitive. A quote generated outside the platform is a quote the institution may have to honor and cannot reconcile.",
       },
     ],
     failureModes: [
       {
         id: "fm-loan-lossmit-trigger",
         description:
-          "A borrower describes hardship in passing and the agent continues an informational conversation, leaving an unrecognised loss mitigation inquiry with no acknowledgment clock started.",
+          "A borrower describes hardship in passing and the agent continues an informational conversation, leaving an unrecognized loss mitigation inquiry with no acknowledgment clock started.",
         mitigation:
           "Hardship language is a hard escalation trigger evaluated on every turn, independent of stated intent.",
         severity: "regulatory-exposure",
@@ -449,7 +449,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
     plainLanguageSummary:
       "I need to know what I owe, or I'm struggling to pay it.",
     operatorNote:
-      "Highest regulatory density in the portfolio. The right agentic posture is triage in front of the human, not replacement of the human.",
+      "Heavily regulated. Use the agent to triage, then hand the borrower to a person.",
   },
 
   // -----------------------------------------------------------------------
@@ -474,7 +474,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled as delinquency incidence multiplied by contact attempts per delinquent account per year. The range is wide because it is driven by portfolio credit quality more than by servicing practice.",
+            "Modeled as delinquency incidence multiplied by contact attempts per delinquent account per year. The range is wide because it is driven by portfolio credit quality more than by servicing practice.",
         },
       },
       inScopeShare: {
@@ -483,7 +483,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Early-stage only. Late-stage and charged-off accounts typically sit with an agency and are outside the institution's own contact centre.",
+            "Early-stage only. Late-stage and charged-off accounts typically sit with an agency and are outside the institution's own contact center.",
         },
       },
       narrative:
@@ -495,7 +495,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from right party contact conversations. Excludes the large share of attempts that reach no one.",
+          "Modeled from right party contact conversations. Excludes the large share of attempts that reach no one.",
       },
     },
     containmentCeiling: {
@@ -551,16 +551,16 @@ export const WORKLOADS: WorkloadArchetype[] = [
       {
         id: "fm-coll-pressure",
         description:
-          "The agent optimises for a promise to pay and produces language that reads as abusive under UDAAP.",
+          "The agent optimizes for a promise to pay and produces language that reads as abusive under UDAAP.",
         mitigation:
-          "Promise to pay is not an optimisation target. Approved language, full-population surveillance, no reward on conversion.",
+          "Promise to pay is not an optimization target. Approved language, full-population surveillance, no reward on conversion.",
         severity: "customer-harm",
       },
     ],
     plainLanguageSummary:
-      "The bank is calling me about a payment I've missed.",
+      "I got a call about a payment I missed.",
     operatorNote:
-      "Every vendor puts this on the first slide. It should be the last workload deployed, and saying so out loud is the fastest way to earn a servicing leader's trust.",
+      "Often pitched first. Deploy it last: it is the only outbound workload, and AI voice outbound carries robocall consent risk.",
   },
 
   // -----------------------------------------------------------------------
@@ -585,7 +585,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from fraud alert and victim intake rates per retail customer per year. Excludes card disputes counted in the card workload.",
+            "Modeled from fraud alert and victim intake rates per retail customer per year. Excludes card disputes counted in the card workload.",
         },
       },
       inScopeShare: {
@@ -606,7 +606,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from victim intake including transaction review and case creation. Upper bound reflects elder financial exploitation and complex scam intake.",
+          "Modeled from victim intake including transaction review and case creation. Upper bound reflects elder financial exploitation and complex scam intake.",
       },
     },
     containmentCeiling: {
@@ -615,7 +615,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Alert confirmation and denial are highly mechanisable. Victim intake and account restoration are not. Ceiling is deliberately the lowest in the corpus.",
+          "Alert confirmation and denial are highly mechanisable. Victim intake and account restoration are not. The ceiling is deliberately low.",
       },
     },
     containmentPermittedToday: {
@@ -663,7 +663,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
     plainLanguageSummary:
       "I think someone is stealing from me, or my account just got frozen.",
     operatorNote:
-      "Do not measure this workload on containment. Measure it on time to first human for the cases that need one.",
+      "Measure this on time to a human for the cases that need one.",
   },
 
   // -----------------------------------------------------------------------
@@ -688,7 +688,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled as one intake contact per claim plus a modest re-contact rate during intake before a claim number is issued.",
+            "Modeled as one intake contact per claim plus a modest re-contact rate during intake before a claim number is issued.",
         },
       },
       inScopeShare: {
@@ -708,7 +708,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from structured loss intake including party, vehicle or property, and circumstance capture.",
+          "Modeled from structured loss intake including party, vehicle or property, and circumstance capture.",
       },
     },
     containmentCeiling: {
@@ -774,7 +774,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
     plainLanguageSummary:
       "I was just in an accident and I need to file a claim.",
     operatorNote:
-      "The intake agent must know the state before it knows the loss. That single sequencing detail is what separates a carrier-grade agent from a demo.",
+      "Capture the loss state first. It sets which acknowledgment deadline applies.",
   },
 
   // -----------------------------------------------------------------------
@@ -799,7 +799,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from annual servicing contacts per policy in force including billing cycle and renewal contacts, plus status contacts attaching to open claims.",
+            "Modeled from annual servicing contacts per policy in force including billing cycle and renewal contacts, plus status contacts attaching to open claims.",
         },
       },
       inScopeShare: {
@@ -807,7 +807,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         high: 0.82,
         provenance: {
           class: "inferred",
-          method: "Excludes first notice of loss, modelled separately.",
+          method: "Excludes first notice of loss, modeled separately.",
         },
       },
       narrative:
@@ -818,7 +818,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       high: 9,
       provenance: {
         class: "inferred",
-        method: "Modelled from status lookup and explanation in the claims platform.",
+        method: "Modeled from status lookup and explanation in the claims platform.",
       },
     },
     containmentCeiling: {
@@ -847,7 +847,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         platforms: ["Guidewire PolicyCenter", "Duck Creek", "Majesco", "in-house"],
         accessRequired: "read",
         integrationNote:
-          "Status language must be derived from the claims platform state rather than summarised, because a paraphrase of a claim status is a communication about the claim.",
+          "Status language must be derived from the claims platform state rather than summarized, because a paraphrase of a claim status is a communication about the claim.",
       },
     ],
     failureModes: [
@@ -860,9 +860,9 @@ export const WORKLOADS: WorkloadArchetype[] = [
       },
     ],
     plainLanguageSummary:
-      "Where does my claim stand, and when do I get paid.",
+      "Where does my claim stand, and when do I get paid?",
     operatorNote:
-      "The carrier equivalent of deposit servicing. Fund the programme here, and let it pay for the FNOL governance work.",
+      "The insurance counterpart to deposit servicing. Let it fund the first notice of loss work.",
   },
 
   // -----------------------------------------------------------------------
@@ -887,7 +887,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from appointment booking rates per retail customer per year across branch, advisory, and inspection contexts.",
+            "Modeled from appointment booking rates per retail customer per year across branch, advisory, and inspection contexts.",
         },
       },
       inScopeShare: {
@@ -906,7 +906,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       high: 5,
       provenance: {
         class: "inferred",
-        method: "Modelled from calendar lookup and confirmation.",
+        method: "Modeled from calendar lookup and confirmation.",
       },
     },
     containmentCeiling: {
@@ -948,9 +948,9 @@ export const WORKLOADS: WorkloadArchetype[] = [
       },
     ],
     plainLanguageSummary:
-      "I need to book time with someone at the bank or the carrier.",
+      "I need to book time with a specialist.",
     operatorNote:
-      "Small money, fast proof. This is what earns the second conversation with the risk committee.",
+      "Small dollars, fast proof. A clean launch here earns the next risk committee meeting.",
   },
 
   // -----------------------------------------------------------------------
@@ -975,7 +975,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from annual service contacts per advisory household including advisor-initiated and client-initiated service requests. Higher than retail because relationship intensity is higher.",
+            "Modeled from annual service contacts per advisory household including advisor-initiated and client-initiated service requests. Higher than retail because relationship intensity is higher.",
         },
       },
       inScopeShare: {
@@ -995,7 +995,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       high: 12,
       provenance: {
         class: "inferred",
-        method: "Modelled from custody platform lookup and documentation requests.",
+        method: "Modeled from custody platform lookup and documentation requests.",
       },
     },
     containmentCeiling: {
@@ -1050,9 +1050,9 @@ export const WORKLOADS: WorkloadArchetype[] = [
       },
     ],
     plainLanguageSummary:
-      "I need something from my advisor, not advice, just service.",
+      "I need my advisor's office to handle some paperwork.",
     operatorNote:
-      "Report this workload in advisor hours recovered, not in containment. Wealth leadership does not buy deflection.",
+      "Report this in advisor hours recovered. Wealth leaders do not buy call deflection.",
   },
 
   // -----------------------------------------------------------------------
@@ -1077,7 +1077,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
         provenance: {
           class: "inferred",
           method:
-            "Modelled from payment servicing contacts per checking account per year, rising with instant payment adoption.",
+            "Modeled from payment servicing contacts per checking account per year, rising with instant payment adoption.",
         },
       },
       inScopeShare: {
@@ -1097,7 +1097,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled from payment trace and status investigation. Scam intake sits at the upper bound.",
+          "Modeled from payment trace and status investigation. Scam intake sits at the upper bound.",
       },
     },
     containmentCeiling: {
@@ -1146,7 +1146,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
       {
         id: "fm-pay-scam-misroute",
         description:
-          "An authorised push payment scam is handled as a payment status inquiry.",
+          "An authorized push payment scam is handled as a payment status inquiry.",
         mitigation:
           "Scam indicators are a hard escalation trigger into the fraud path.",
         severity: "customer-harm",
@@ -1155,7 +1155,7 @@ export const WORKLOADS: WorkloadArchetype[] = [
     plainLanguageSummary:
       "I sent money and it didn't arrive, or it went to the wrong place.",
     operatorNote:
-      "The fastest growing call driver in retail banking and the one least represented in existing IVR containment models.",
+      "Growing as instant payments spread, and missing from most IVR automation.",
   },
 ];
 

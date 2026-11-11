@@ -287,7 +287,7 @@ export function computeLedger(
   const computed: ComputedRow[] = [];
   for (const input of inputs) {
     const workload = lookup(input.workloadId);
-    // An unrecognised workload id is dropped silently. The model is not
+    // An unrecognized workload id is dropped silently. The model is not
     // permitted to introduce a workload that is not in the corpus.
     if (!workload) continue;
     computed.push(computeRow(workload, institution, economics, input));

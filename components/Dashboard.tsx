@@ -3,17 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EconomicsConstants, InstitutionArchetype, Ledger, SegmentId } from "../corpus/types";
 import { INSTITUTIONS } from "../corpus/institutions";
-import { CONTROL_GATES } from "../corpus/controls";
+import { GATE_IDS } from "../corpus/controls";
 import { SOURCES } from "../corpus/sources";
 import { REGULATIONS } from "../corpus/regulations";
 import { WORKLOADS_BY_ID } from "../corpus/workloads";
 import { ledgerFromRows, lockedGateIds } from "../lib/defaults";
-import type { Challenge } from "../lib/schema";
+import { pruneChallenges, type Challenge } from "../lib/schema";
+import { PREBUILT_CHALLENGES } from "../lib/prebuilt";
 import type { Phase } from "../lib/sequence";
 import { totalProvenance } from "../lib/provenance";
 import { useAnimatedNumber, useMounted } from "../lib/motion";
 import {
   OWNER_LABEL,
+  controlCoverage,
   SEGMENT_SHORT,
   SEGMENT_TINY,
   assetsLabel,
@@ -37,8 +39,6 @@ export function Dashboard({
   institution,
   economics,
   phases,
-  notice,
-  fromFiling,
   onEconomicsChange,
   onEconomicsReset,
   economicsDirty,
@@ -49,8 +49,6 @@ export function Dashboard({
   institution: InstitutionArchetype;
   economics: EconomicsConstants;
   phases: Phase[];
-  notice?: string | null;
-  fromFiling: boolean;
   onEconomicsChange: (next: EconomicsConstants) => void;
   onEconomicsReset: () => void;
   economicsDirty: boolean;
@@ -65,13 +63,10 @@ export function Dashboard({
   // Off reverts instantly, because only the overlay changes.
   const [arguing, setArguing] = useState(false);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [challengeNote, setChallengeNote] = useState<string | null>(null);
-  const [challengePending, setChallengePending] = useState(false);
 
   useEffect(() => {
     setArguing(false);
     setChallenges([]);
-    setChallengeNote(null);
     setOpenId(null);
   }, [institution.id]);
 
@@ -96,38 +91,24 @@ export function Dashboard({
     return ledgerFromRows(institution, revised, economics).ledger;
   }, [arguing, challenges, challengeMap, ledger, institution, economics]);
 
-  async function toggleStressTest() {
+  /**
+   * The risk committee's revisions are prebuilt and validated (lib/prebuilt.ts),
+   * then pruned against the figures on screen exactly as live output would be.
+   */
+  function toggleStressTest() {
     if (arguing) {
       setArguing(false);
       setChallenges([]);
-      setChallengeNote(null);
       return;
     }
-    setChallengePending(true);
-    setChallengeNote(null);
-    try {
-      const response = await fetch("/api/challenge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          institutionId: institution.id,
-          rows: ledger.rows.map((r) => ({
-            workloadId: r.workloadId,
-            permittedPct: r.permittedPct,
-            ceilingPct: r.ceilingPct,
-          })),
-        }),
-      });
-      const data = (await response.json()) as { challenges?: Challenge[]; note?: string | null };
-      setChallenges(data.challenges ?? []);
-      setChallengeNote(data.note ?? null);
-    } catch {
-      setChallenges([]);
-      setChallengeNote("The stress test did not run. The figures are unchanged.");
-    } finally {
-      setArguing(true);
-      setChallengePending(false);
-    }
+    const { kept } = pruneChallenges(
+      PREBUILT_CHALLENGES[institution.id] ?? [],
+      ledger.rows,
+      (id) => WORKLOADS_BY_ID[id]?.gateIds,
+      (id) => GATE_IDS.has(id)
+    );
+    setChallenges(kept);
+    setArguing(true);
   }
 
   const openRow = shown.rows.find((r) => r.workloadId === openId) ?? null;
@@ -141,8 +122,15 @@ export function Dashboard({
   const contacts = shown.rows.reduce((s, r) => s + r.annualVolumeLow, 0);
   const last = phases[phases.length - 1];
   const first = phases[0];
-  // The first step that actually releases value, for when step one only enables.
-  const payoff = phases.find((p) => p.valueReleasedUsd > 0);
+  // Lead with step 1 when it releases value. Where it only enables later
+  // steps, lead with the step that releases the most.
+  const focus =
+    first && first.valueReleasedUsd > 0
+      ? first
+      : phases.reduce<Phase | undefined>(
+          (best, p) => (!best || p.valueReleasedUsd > best.valueReleasedUsd ? p : best),
+          undefined
+        );
 
   const workloads = ledger.rows
     .map((r) => WORKLOADS_BY_ID[r.workloadId])
@@ -154,15 +142,12 @@ export function Dashboard({
         <button
           type="button"
           onClick={toggleStressTest}
-          disabled={challengePending}
           aria-pressed={arguing}
-          title="An AI risk committee argues with every figure"
+          title="See where a risk committee would push back"
           className={`btn ${arguing ? "bg-critical-wash text-critical" : "btn-secondary"}`}
         >
-          {challengePending ? <span className="spinner h-3.5 w-3.5" /> : <GavelIcon className="h-4 w-4" />}
-          <span className="hidden sm:inline">
-            {challengePending ? "Reviewing" : arguing ? "End stress test" : "Stress test"}
-          </span>
+          <GavelIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">{arguing ? "End stress test" : "Stress test"}</span>
         </button>
         <button type="button" onClick={() => setBriefOpen(true)} className="btn btn-primary">
           <DocIcon className="h-4 w-4" />
@@ -187,35 +172,21 @@ export function Dashboard({
 
         {/* Summary */}
         <section key={institution.id} className="fade-up mt-10 sm:mt-12">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="display text-[40px] font-semibold text-label sm:text-[52px]">
-              {segmentShort(institution)}
-            </h1>
-            {fromFiling ? (
-              <span className="rounded-full bg-accent-wash px-3 py-1 text-[13px] font-medium text-accent">
-                From your filing
-              </span>
-            ) : null}
-          </div>
+          <h1 className="display text-[40px] font-semibold text-label sm:text-[52px]">
+            {segmentShort(institution)}
+          </h1>
           <p className="mt-2 text-[17px] text-secondary">
             {assetsLabel(institution)} · {institution.stack.core.split(",")[0]} core ·{" "}
             {institution.stack.contactCenter.split(",")[0]}
           </p>
         </section>
 
-        {notice ? (
-          <div className="mt-6 flex gap-3 rounded-[16px] bg-accent-wash px-5 py-4 text-[15px] leading-snug text-label">
-            <span className="dot mt-[7px]" style={{ background: "var(--accent)" }} />
-            {notice}
-          </div>
-        ) : null}
-
         <Summary
           cleared={cleared}
           waiting={waiting}
           rowCount={shown.rows.length}
           approvals={approvals}
-          controlsInPlace={institution.controlsInPlace.length}
+          coverage={controlCoverage(institution)}
           contacts={contacts}
           timeline={last ? weeksRange(last.weeksLow, last.weeksHigh) : "Now"}
         />
@@ -226,54 +197,41 @@ export function Dashboard({
               <p className="text-[15px] font-semibold text-critical">
                 {challenges.length > 0
                   ? `Stress test: ${challenges.length} ${challenges.length === 1 ? "figure" : "figures"} argued down by ${compactUsd(reduction)}`
-                  : challengeNote && !challengeNote.startsWith("The risk committee")
-                    ? "Stress test unavailable"
-                    : "Stress test: every figure held"}
+                  : "Stress test: every figure held"}
               </p>
               <p className="mt-1 text-[14px] leading-snug text-label">
-                {challengeNote ??
-                  "An AI risk committee reviewed every workload against this institution's constraints. Its revisions are applied below."}
+                Where this institution&rsquo;s risk committee would push back, citing its own
+                constraints. The revised figures are applied below.
               </p>
             </div>
-            <button type="button" onClick={toggleStressTest} className="btn btn-plain h-8 text-[14px] text-critical">
-              Undo
-            </button>
           </div>
         ) : null}
 
-        {first ? (
+        {focus ? (
           <button
             type="button"
-            onClick={() => first.unlockedWorkloadIds[0] && setOpenId(first.unlockedWorkloadIds[0])}
+            onClick={() => focus.unlockedWorkloadIds[0] && setOpenId(focus.unlockedWorkloadIds[0])}
             className="card group mt-4 flex w-full items-start gap-4 p-5 text-left transition-colors hover:bg-[color-mix(in_srgb,var(--surface)_94%,var(--accent))] sm:items-center sm:p-6"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-wash text-accent">
               <SparkIcon className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[13px] font-semibold text-accent">Start here</span>
+              <span className="block text-[13px] font-semibold text-accent">
+                {focus === first ? "Start here" : "Biggest release"}
+              </span>
               <span className="mt-0.5 block text-[16px] leading-snug text-label sm:text-[17px]">
-                {first.gates.length === 1 ? (
+                {focus.gates.length === 1 ? (
                   <>
-                    Clear <span className="font-semibold">{first.gates[0]!.name.toLowerCase()}</span> with{" "}
-                    {OWNER_LABEL[first.gates[0]!.owner] ?? first.gates[0]!.owner}
+                    Clear <span className="font-semibold">{focus.gates[0]!.name.toLowerCase()}</span> with{" "}
+                    {OWNER_LABEL[focus.gates[0]!.owner] ?? focus.gates[0]!.owner}
                   </>
                 ) : (
-                  <>Clear {first.gates.length} approvals</>
+                  <>Clear {focus.gates.length} approvals</>
                 )}{" "}
-                {first.valueReleasedUsd > 0 || !payoff ? (
-                  <>
-                    to release{" "}
-                    <span className="font-semibold text-accent">+{compactUsd(first.valueReleasedUsd)}</span> in{" "}
-                    {weeksRange(first.weeksLow, first.weeksHigh).replace("wks", "weeks")}.
-                  </>
-                ) : (
-                  <>
-                    first, in {weeksRange(first.weeksLow, first.weeksHigh).replace("wks", "weeks")}. With step{" "}
-                    {payoff.step} it releases{" "}
-                    <span className="font-semibold text-accent">+{compactUsd(payoff.valueReleasedUsd)}</span>.
-                  </>
-                )}
+                to release{" "}
+                <span className="font-semibold text-accent">+{compactUsd(focus.valueReleasedUsd)}</span> in{" "}
+                {weeksRange(focus.weeksLow, focus.weeksHigh)}.
               </span>
             </span>
           </button>
@@ -305,7 +263,7 @@ export function Dashboard({
 
         <SectionHeader
           title="Assumptions"
-          subtitle="Seven inputs drive every figure. Change one and everything reprices."
+          subtitle="These inputs set every figure. Change one and the page updates."
           action={
             <button type="button" onClick={() => setAssumptionsOpen((v) => !v)} className="btn btn-secondary h-8 text-[14px]">
               <SlidersIcon className="h-4 w-4" />
@@ -326,9 +284,8 @@ export function Dashboard({
         ) : null}
 
         <footer className="mt-20 border-t border-separator pt-6 text-[13px] leading-relaxed text-tertiary">
-          Grounded in {SOURCES.length} public sources and {REGULATIONS.length} regulations across{" "}
-          {CONTROL_GATES.length} controls. Every range is totalled at its conservative end. Select any
-          figure to see where it comes from.
+          Built on {SOURCES.length} public sources and {REGULATIONS.length} regulations. Totals use
+          the low end of every range. Select any figure to see its source.
         </footer>
       </main>
 
@@ -401,7 +358,7 @@ function Summary({
   waiting,
   rowCount,
   approvals,
-  controlsInPlace,
+  coverage,
   contacts,
   timeline,
 }: {
@@ -409,7 +366,7 @@ function Summary({
   waiting: number;
   rowCount: number;
   approvals: number;
-  controlsInPlace: number;
+  coverage: { inPlace: number; total: number };
   contacts: number;
   timeline: string;
 }) {
@@ -428,7 +385,7 @@ function Summary({
           value={
             <Numeral provenance={totalProvenance(rowCount, "permitted")}>{compactUsd(a)}</Numeral>
           }
-          caption="Per year, under controls already in place"
+          caption="Annual savings under current controls"
         />
         <Figure
           label={
@@ -451,7 +408,7 @@ function Summary({
             <Numeral
               provenance={{
                 class: "inferred",
-                method: "Cleared today plus waiting on approval. The ceiling, totalled at the conservative end of every range.",
+                method: "Cleared today plus waiting on approval, at the low end of every range.",
               }}
               className="text-secondary"
             >
@@ -473,10 +430,10 @@ function Summary({
       </div>
 
       <dl className="mt-7 grid grid-cols-2 border-t border-separator sm:grid-cols-4">
-        <Stat label="Controls in place" value={`${controlsInPlace} of ${CONTROL_GATES.length}`} />
+        <Stat label="Controls in place" value={`${coverage.inPlace} of ${coverage.total}`} />
         <Stat label="Workloads" value={String(rowCount)} />
         <Stat label="Contacts a year" value={Math.round(contacts).toLocaleString("en-US")} />
-        <Stat label="To full value" value={timeline.replace("wks", "weeks")} />
+        <Stat label="To full value" value={timeline} />
       </dl>
     </section>
   );

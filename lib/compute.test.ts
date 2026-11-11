@@ -368,7 +368,7 @@ test("rows land in descending order of total value", () => {
   assert.equal(ledger.rows[1]!.workloadId, "wl-small");
 });
 
-test("an unrecognised workload id is dropped silently", () => {
+test("an unrecognized workload id is dropped silently", () => {
   const { ledger } = computeLedger(
     makeInstitution(1_000),
     { "wl-test": makeWorkload() },

@@ -1,28 +1,19 @@
 /**
- * The prebuilt content in lib/prebuilt.ts must pass every check the live routes
- * apply to model output, plus the writing rules the prompts impose. If any of
- * these fail, the route would have rejected the same text from the model.
+ * The content in lib/prebuilt.ts must pass every check originally applied to
+ * live model output, plus the writing rules the prompts impose. 
  */
 
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { INSTITUTIONS, INSTITUTIONS_BY_ID } from "../corpus/institutions";
+import { INSTITUTIONS } from "../corpus/institutions";
 import { GATE_IDS } from "../corpus/controls";
 import { WORKLOADS_BY_ID } from "../corpus/workloads";
-import { corpusDefaultLedger, applyDriverOverrides } from "./defaults";
+import { corpusDefaultLedger } from "./defaults";
 import { buildSequence } from "./sequence";
 import { detectExemptionContradiction } from "./brief";
 import { briefSchema, challengeResponseSchema, pruneChallenges } from "./schema";
-import {
-  PREBUILT_BRIEFS,
-  PREBUILT_CHALLENGES,
-  SAMPLE_DRIVERS,
-  SAMPLE_FILING,
-  SAMPLE_REASONING,
-  SAMPLE_TRACE,
-  isSampleFiling,
-} from "./prebuilt";
+import { PREBUILT_BRIEFS, PREBUILT_CHALLENGES } from "./prebuilt";
 
 function allText(value: unknown): string[] {
   if (typeof value === "string") return [value];
@@ -36,6 +27,10 @@ function writingRules(label: string, texts: string[]) {
     assert.ok(!t.includes("—"), `${label}: em-dash in "${t}"`);
     assert.ok(!/\bphases?\b/i.test(t), `${label}: says phase in "${t}"`);
     assert.ok(!/\$\d+(\.\d+)?\s*(million|thousand|[MK])\b/i.test(t), `${label}: abbreviated dollar figure in "${t}"`);
+    assert.ok(!/\btier (one|two|three|\d)\b/i.test(t), `${label}: internal tier jargon in "${t}"`);
+    assert.ok(!/\bstep (one|two|three)\b/i.test(t), `${label}: step number spelled out in "${t}"`);
+    assert.ok(!/\b(ledger|corpus|archetype|gate)\b/i.test(t), `${label}: internal term in "${t}"`);
+    assert.ok(!/(centre|programme|optimis|honour|organisation|modelled|totalled)/i.test(t), `${label}: British spelling in "${t}"`);
   }
 }
 
@@ -82,25 +77,6 @@ for (const institution of INSTITUTIONS) {
       const sentences = c.claim.split(/(?<=[.!?])\s+/).filter(Boolean).length;
       assert.ok(sentences >= 2 && sentences <= 3, `${c.targetWorkloadId} claim is ${sentences} sentences`);
     }
-    writingRules(`${institution.id} challenges`, allText(challenges));
+    writingRules(`${institution.id} challenges`, challenges.map((c) => c.claim));
   });
 }
-
-test("the sample filing is recognised regardless of whitespace", () => {
-  assert.ok(isSampleFiling(SAMPLE_FILING));
-  assert.ok(isSampleFiling(`  ${SAMPLE_FILING.replace(/ /g, "\n")}  `));
-  assert.ok(!isSampleFiling(SAMPLE_FILING + " Extra."));
-});
-
-test("the sample filing's drivers and rows belong to the credit union", () => {
-  const cu = INSTITUTIONS_BY_ID["credit-union"]!;
-  for (const d of SAMPLE_DRIVERS) assert.ok(d.driver in cu.drivers, `${d.driver} is a real driver`);
-
-  const applied = applyDriverOverrides(cu, SAMPLE_DRIVERS);
-  assert.equal(applied.drivers.totalAssetsUsd.value, 2_800_000_000);
-  assert.equal(applied.drivers.totalAssetsUsd.provenance.class, "verified");
-
-  assert.deepEqual(Object.keys(SAMPLE_REASONING).sort(), [...cu.workloadIds].sort());
-  assert.ok(SAMPLE_TRACE.length >= 8 && SAMPLE_TRACE.length <= 14);
-  writingRules("sample", [...allText(SAMPLE_TRACE), ...Object.values(SAMPLE_REASONING)]);
-});

@@ -5,6 +5,7 @@
  */
 
 import type { InstitutionArchetype, SegmentId, WorkloadArchetype } from "../corpus/types";
+import { WORKLOADS_BY_ID } from "../corpus/workloads";
 
 export const SEGMENT_SHORT: Record<SegmentId, string> = {
   "regional-bank": "Regional Bank",
@@ -23,9 +24,9 @@ export const SEGMENT_TINY: Record<SegmentId, string> = {
 
 export const SEGMENT_TAGLINE: Record<SegmentId, string> = {
   "regional-bank": "Multi-state retail bank with wealth and mortgage servicing.",
-  "credit-union": "Community-chartered, member-first, strong indirect auto book.",
+  "credit-union": "Single-state credit union, 300,000 members, Symitar core.",
   "digital-lender": "Sponsor-bank lender. Chat-first, no branches.",
-  "pc-carrier": "Personal lines auto and home across eighteen states.",
+  "pc-carrier": "Personal auto and home insurer writing in 18 states.",
 } as Record<SegmentId, string>;
 
 export function segmentShort(institution: InstitutionArchetype): string {
@@ -34,8 +35,19 @@ export function segmentShort(institution: InstitutionArchetype): string {
 
 export function assetsLabel(institution: InstitutionArchetype): string {
   const v = institution.drivers.totalAssetsUsd.value;
-  if (v >= 1e9) return `$${(v / 1e9).toFixed(v >= 1e10 ? 0 : 1).replace(/\.0$/, "")}B in assets`;
-  return `$${Math.round(v / 1e6)}M in assets`;
+  // A lender's balance sheet is receivables held through its sponsor bank.
+  const noun = institution.id === "digital-lender" ? "receivables" : "assets";
+  if (v >= 1e9) return `$${(v / 1e9).toFixed(v >= 1e10 ? 0 : 1).replace(/\.0$/, "")}B in ${noun}`;
+  return `$${Math.round(v / 1e6)}M in ${noun}`;
+}
+
+/** Controls that apply to this institution's workloads, and how many are in place. */
+export function controlCoverage(institution: InstitutionArchetype): { inPlace: number; total: number } {
+  const applicable = new Set(
+    institution.workloadIds.flatMap((id) => WORKLOADS_BY_ID[id]?.gateIds ?? [])
+  );
+  const inPlace = institution.controlsInPlace.filter((g) => applicable.has(g)).length;
+  return { inPlace, total: applicable.size };
 }
 
 export const RISK_LABEL: Record<WorkloadArchetype["riskTier"], string> = {
@@ -64,5 +76,5 @@ export function compactUsd(n: number): string {
 }
 
 export function weeksRange(low: number, high: number): string {
-  return low === high ? `${high} wks` : `${low}–${high} wks`;
+  return low === high ? `${high} weeks` : `${low}–${high} weeks`;
 }

@@ -91,18 +91,13 @@ export interface Play {
 /**
  * One line of evidence for a play, drawn from a workload it unlocks.
  *
- * A written conversation outcome is preferred, because it is the strongest
- * proof in the corpus. A failure mode is the fallback. Where a play unlocks
- * nothing, the field is absent rather than filled with a substitute.
+ * Only a written conversation outcome counts as proof. A failure mode is a
+ * risk, not evidence, so where no conversation exists the field is absent.
  */
 function proofPointFor(workloadIds: string[]): string | undefined {
   for (const workloadId of workloadIds) {
     const conversation = CONVERSATIONS_BY_WORKLOAD[workloadId]?.[0];
     if (conversation) return conversation.outcome.rationale;
-  }
-  for (const workloadId of workloadIds) {
-    const failure = WORKLOADS_BY_ID[workloadId]?.failureModes[0];
-    if (failure) return failure.description;
   }
   return undefined;
 }
@@ -152,7 +147,7 @@ export function buildPlays(phases: Phase[]): Play[] {
 const PLANNING_CYCLE: Record<SegmentId, string> = {
   "regional-bank": "their next model risk committee cycle",
   "credit-union": "their next board technology review",
-  "digital-lender": "their next roadmap planning cycle",
+  "digital-lender": "the sponsor bank's next compliance review",
   "pc-carrier": "their next state filing cycle",
 };
 
@@ -166,7 +161,7 @@ export function buildScaffoldActions(
   if (first && first.gates.length > 0) {
     const owner = first.gates[0]!;
     actions.push(
-      `Confirm with ${owner.ownerLabel} whether ${owner.gateName.toLowerCase()} is already scoped internally.`
+      `Confirm with ${owner.ownerLabel} whether the ${owner.gateName.toLowerCase()} work is already scoped internally.`
     );
   }
 
@@ -204,7 +199,7 @@ const STACK_LABEL: Record<string, string> = {
   loanServicing: "loan servicing",
   policyAdmin: "policy admin",
   claims: "claims",
-  contactCenter: "contact centre",
+  contactCenter: "contact center",
   iam: "identity",
 };
 
@@ -253,7 +248,7 @@ export interface SchematicModel {
 
 /** "gate-auth-step-up" becomes "auth step-up". Stable, no hand written table. */
 function shortGateLabel(gateId: string): string {
-  return gateId.replace(/^gate-/, "").replace(/-/g, " ");
+  return GATES_BY_ID[gateId]?.name ?? gateId.replace(/^gate-/, "").replace(/-/g, " ");
 }
 
 /**
@@ -264,8 +259,12 @@ function shortGateLabel(gateId: string): string {
 export function buildSchematic(institution: InstitutionArchetype): SchematicModel {
   const stack = institution.stack as unknown as Record<string, string | undefined>;
 
+  // A carrier's policy administration platform is its core, so it is shown once.
   const systems: SchematicSystem[] = STACK_ORDER.filter(
-    (key) => typeof stack[key] === "string" && stack[key]!.length > 0
+    (key) =>
+      typeof stack[key] === "string" &&
+      stack[key]!.length > 0 &&
+      !(key === "core" && stack.policyAdmin)
   ).map((key) => ({
     key,
     role: STACK_LABEL[key] ?? key,
@@ -422,7 +421,7 @@ function normalise(text: string): string {
  * is covered the day it is added. Bigrams rather than the whole name because a
  * sentence rarely quotes a gate by its full title: the credit union sentence
  * said "federal model risk guidance", which carries "model risk" and nothing
- * else the corpus would recognise.
+ * else the corpus would recognize.
  */
 function gateTerms(gateId: string, gateName: string): string[] {
   const terms = new Set<string>();

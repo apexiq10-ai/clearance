@@ -46,6 +46,8 @@ Headline: **What's possible. What's permitted.**
 - Shape: 20px card radius, 12px control radius, capsule bars and pills.
 - Depth: hairline separators, with soft shadow only on floating surfaces (sheets, popovers, the top bar).
 
-## Model output
+## Content
 
-The account brief and the stress test for the four institutions, and the analysis of the sample filing, are prebuilt in `lib/prebuilt.ts` and served instantly by the same routes, with no model call and no rate limit. `lib/prebuilt.test.ts` holds that content to every check the routes apply to live model output. The model is still called for anything custom: a pasted filing, or a stress test after figures change. To review what each section was written from, run `npx tsx scripts/dump-inputs.ts`.
+The app is fully static and needs no model or key. The written sections of the account brief and the stress test revisions for the four institutions live in `lib/prebuilt.ts`. `lib/prebuilt.test.ts` holds them to the original schema, pruning and exemption guards, plus the house style: no em-dashes, no internal terms (tier, ledger, gate, corpus), steps as digits, US spelling. To review what each section was written from, run `npx tsx scripts/dump-inputs.ts`.
+
+Vocabulary: "controls" are what an institution has in place, "approvals" are what is still waiting.

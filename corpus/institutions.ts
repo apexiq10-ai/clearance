@@ -9,7 +9,7 @@ import type { InstitutionArchetype } from "./types";
  * with identical volume produce different permitted columns because they can
  * evidence different controls.
  *
- * The credit union is deliberately modelled as having a HIGHER permitted
+ * The credit union is deliberately modeled as having a HIGHER permitted
  * share than the larger bank on the tier one workloads, because it is not
  * supervised under the federal model risk guidance that gates them. That
  * inversion is the most commercially useful observation in the corpus and
@@ -31,7 +31,7 @@ export const INSTITUTIONS: InstitutionArchetype[] = [
     id: "regional-bank",
     name: "Regional bank, twenty billion in assets",
     profile:
-      "Multi-state retail and commercial bank just over the ten billion threshold, with a wealth division, a mortgage servicing book, and a contact centre consolidated from two acquisitions.",
+      "A $20B multi-state retail and commercial bank, well above the $10B CFPB supervision threshold, with a wealth division, a mortgage servicing book, and a contact center consolidated from two acquisitions.",
     regulators: [
       "Federal Reserve or OCC",
       "FDIC",
@@ -92,7 +92,7 @@ export const INSTITUTIONS: InstitutionArchetype[] = [
       "Supervised under the federal model risk guidance, so any tier one autonomous action waits on independent validation. Budget two committee cycles, not one.",
       "Telephone banking authenticates at a knowledge-based level against a core-native identity store that is separate from the Okta tenant used by digital banking. Until those converge, voice cannot inherit the digital assurance level.",
       "Provisional credit posts to the deposit core on a batch cycle, so a real-time dispute resolution promise cannot be kept even where the decision is correct.",
-      "The wealth division sits under a supervised communications regime that the retail contact centre platform does not currently satisfy for retention.",
+      "The wealth division sits under a supervised communications regime that the retail contact center platform does not currently satisfy for retention.",
     ],
     workloadIds: [
       "wl-authentication",
@@ -165,10 +165,10 @@ export const INSTITUTIONS: InstitutionArchetype[] = [
       "gate-auth-step-up",
     ],
     knownConstraints: [
-      "Not supervised under the federal model risk guidance, which removes the longest gate in the corpus from tier one workloads. This is a structural speed advantage over a bank of any size and it is the single most useful thing to tell a credit union executive.",
+      "Not supervised under the federal model risk guidance (SR 11-7), so model validation follows NCUA expectations and the credit union's own policy. Validation can move faster than at a bank of any size, and that is worth telling a credit union executive early.",
       "Transactional access to the core is mediated by the core vendor's integration layer, so the write surface is set by the vendor roadmap rather than by the credit union.",
       "Member experience is a board-level metric. A containment target framed as deflection will be rejected at the board even when the economics are sound. Frame as time to resolution.",
-      "Contact centre headcount is small enough that the business case cannot rest on reduction. It has to rest on absorbing growth without adding seats.",
+      "Contact center headcount is small enough that the business case cannot rest on reduction. It has to rest on absorbing growth without adding seats.",
     ],
     workloadIds: [
       "wl-authentication",
@@ -186,7 +186,7 @@ export const INSTITUTIONS: InstitutionArchetype[] = [
     id: "digital-lender",
     name: "Digital-first consumer lender and neobank",
     profile:
-      "Venture-backed consumer lender operating through a sponsor bank, with a card programme on a modern processor, no branches, and a support organisation that is chat-first and voice-reluctant.",
+      "Venture-backed consumer lender operating through a sponsor bank, with a card program on a modern processor, no branches, and a support organization that is chat-first and voice-reluctant.",
     regulators: [
       "CFPB",
       "Sponsor bank's prudential regulator, applied through the bank partnership",
@@ -256,7 +256,7 @@ export const INSTITUTIONS: InstitutionArchetype[] = [
     id: "pc-carrier",
     name: "Property and casualty carrier, personal lines",
     profile:
-      "Multi-state personal lines carrier writing auto and homeowners across eighteen states, with an independent agent distribution channel and a claims organisation that surges with weather.",
+      "Multi-state personal lines carrier writing auto and homeowners across eighteen states, with an independent agent distribution channel and a claims organization that surges with weather.",
     regulators: [
       "State departments of insurance in each writing state",
       "NAIC model frameworks as adopted state by state",
@@ -290,7 +290,7 @@ export const INSTITUTIONS: InstitutionArchetype[] = [
       },
     },
     stack: {
-      core: "in-house policy administration",
+      core: "Duck Creek",
       policyAdmin: "Duck Creek",
       claims: "Guidewire ClaimCenter",
       contactCenter: "NICE CXone",

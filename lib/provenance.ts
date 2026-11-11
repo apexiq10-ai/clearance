@@ -21,7 +21,7 @@ const money = (v: number) => "$" + v.toFixed(2);
 
 /**
  * Driver keys are written for a compiler. Provenance text is read by someone
- * who runs a servicing organisation, so it says "checking accounts".
+ * who runs a servicing organization, so it says "checking accounts".
  */
 const DRIVER_NOUN: Record<string, string> = {
   totalAssetsUsd: "dollars in total assets",
@@ -33,7 +33,7 @@ const DRIVER_NOUN: Record<string, string> = {
   policiesInForce: "policies in force",
   annualClaims: "claims a year",
   advisoryHouseholds: "advisory households",
-  contactCenterFte: "contact centre agents",
+  contactCenterFte: "contact center agents",
 };
 
 export function volumeProvenance(
@@ -50,7 +50,7 @@ export function volumeProvenance(
       `${workload.volume.contactsPerUnitPerYear.low} contacts per unit per year, ` +
       `multiplied by an in scope share of ${workload.volume.inScopeShare.low}, ` +
       `gives ${n(row.annualVolumeLow)} contacts a year. ` +
-      `The high end of both ranges gives ${n(row.annualVolumeHigh)} and is never totalled.`,
+      `The high end of both ranges gives ${n(row.annualVolumeHigh)} and is never totaled.`,
     note: workload.volume.narrative,
   };
 }
@@ -79,7 +79,7 @@ function valueMethod(
     `less a ${Math.round(penalty * 100)} percent repeat contact penalty, gives ${n(contacts)} contacts. ` +
     `Each is worth ${money(perContact)}, being the low fully loaded contact cost of ${money(cost.low)} ` +
     `less the high cost of an AI-handled contact of ${money(economics.costPerContainedInteraction.high)}. ` +
-    `That pairing is the most conservative available in the corpus.`
+    `This is the most conservative pairing available.`
   );
 }
 
@@ -103,9 +103,7 @@ export function lockedValueProvenance(
     return {
       class: "inferred",
       method:
-        "This institution already evidences every control this workload requires, " +
-        "so nothing is holding value back and today's share is raised to the ceiling. " +
-        "Nothing is waiting on approval.",
+        "Every control this workload needs is in place, so nothing is waiting on approval.",
     };
   }
   return {
@@ -122,7 +120,7 @@ export function totalProvenance(
     class: "inferred",
     method:
       `The sum of ${column === "permitted" ? "cleared-today" : "waiting-on-approval"} value across ${rowCount} workloads, each computed from the ` +
-      `low end of every range in the corpus. The high end of every range is carried for display ` +
+      `low end of every range. The high end of every range is carried for display ` +
       `on individual rows and is never summed into this figure.`,
   };
 }

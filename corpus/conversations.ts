@@ -32,7 +32,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
     outcome: {
       disposition: "assisted",
       rationale:
-        "Intake completed autonomously and the error notice was logged at the moment the customer described it. Provisional credit was refused because it is a tier one action and this institution has not validated the action class.",
+        "The agent completed intake and logged the error notice the moment the customer described it. It did not grant provisional credit, because the institution has not yet validated that action.",
       auditRecord: [
         "Recording and AI disclosure delivered before capture, turn 1.",
         "Notice of error received and timestamped, turn 4. Ten business day clock started.",
@@ -216,7 +216,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
             refId: "gate-model-risk-tiering",
             verdict: "block",
             finding:
-              "Tier one money movement. Action class not independently validated at this institution. The agent is capable of this decision. It is not authorised to make it.",
+              "Money movement. This action is not independently validated at this institution. The agent can make the decision but is not authorized to.",
           },
           {
             refId: "gate-auth-step-up",
@@ -228,7 +228,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
             refId: "gate-core-write-access",
             verdict: "escalate",
             finding:
-              "Provisional credit posts on the deposit core batch cycle. Same-day posting is not available on this platform regardless of authorisation.",
+              "Provisional credit posts on the deposit core batch cycle. Same-day posting is not available on this platform regardless of authorization.",
           },
         ],
       },
@@ -266,7 +266,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
             refId: "gate-core-write-access",
             verdict: "permit",
             finding:
-              "Case creation in the processor dispute system is permitted. Clock state attached to the case record. This is the resolution the agent was authorised to deliver, and it removed nine minutes of human handling.",
+              "Case creation in the processor dispute system is permitted. Clock state attached to the case record. This is the resolution the agent was authorized to deliver, and it removed nine minutes of human handling.",
           },
           {
             refId: "gate-clock-instrumentation",
@@ -292,7 +292,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
     outcome: {
       disposition: "escalated",
       rationale:
-        "Structured intake completed autonomously and the claim was created with the loss state attached. An injury disclosed in passing at turn 8 forced transfer, which is the correct outcome and the one a containment-optimised agent would have missed.",
+        "The agent completed intake and created the claim with the loss state attached. The caller mentioned an injury at turn 8, so the agent transferred to a licensed adjuster with the intake attached.",
       auditRecord: [
         "Recording and AI disclosure delivered before capture, turn 1.",
         "Loss state captured before claim creation, turn 3. State-specific acknowledgment timeline selected.",
@@ -387,7 +387,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
             refId: "naic-ai-bulletin",
             verdict: "permit",
             finding:
-              "Deployment covered by the carrier's written AI systems programme in this state.",
+              "Deployment covered by the carrier's written AI systems program in this state.",
           },
         ],
       },
@@ -428,7 +428,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
         },
         rail: [
           {
-            refId: "udaap",
+            refId: "ucspa",
             verdict: "permit",
             finding:
               "Accurate, does not imply an outcome in either direction, does not discourage the claim.",
@@ -463,7 +463,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
           entities: {
             vehicle_drivable: "true",
             damage: "rear bumper",
-            injury_signal: "neck stiffness, self-minimised",
+            injury_signal: "neck stiffness, self-minimized",
           },
           proposedAction:
             "Continue property intake and arrange a repair appointment",
@@ -480,7 +480,7 @@ export const CONVERSATIONS: ConversationScenario[] = [
             refId: "gate-output-constraint",
             verdict: "block",
             finding:
-              "Agent may not accept the policyholder's own minimisation of an injury. Transfer required.",
+              "Agent may not accept the policyholder's own minimization of an injury. Transfer required.",
           },
         ],
       },

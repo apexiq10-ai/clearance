@@ -19,7 +19,7 @@ import type { ControlGate } from "./types";
 export const CONTROL_GATES: ControlGate[] = [
   {
     id: "gate-auth-step-up",
-    name: "Transactional authentication step-up",
+    name: "Step-up authentication on voice",
     requirement:
       "The agent can raise a caller from knowledge-based verification to a possession or biometric factor mid-conversation, and can evidence which factor was satisfied at the moment of each action.",
     owner: "information-security",
@@ -31,18 +31,18 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as integration effort against an existing identity provider plus one security review cycle. Assumes the institution already operates MFA on digital banking, so the work is extending an existing factor to the voice channel rather than procuring one.",
+          "Modeled as integration effort against an existing identity provider plus one security review cycle. Assumes the institution already operates MFA on digital banking, so the work is extending an existing factor to the voice channel rather than procuring one.",
       },
     },
     unlockPath:
-      "Information security extends the existing digital banking authenticator to the voice session and writes the satisfied assurance level into the interaction record. Until that record exists, every money-movement action is unevidenced regardless of how the caller was verified.",
+      "Information security extends the existing digital authenticator to the voice call and writes the verified assurance level to the interaction record. Until that record exists, no money-movement action can be evidenced, however the caller was verified.",
     commercialMotion:
-      "Real-time step-up authentication inside the voice session, with the satisfied assurance level written to the interaction record. Sold to information security as evidence rather than to servicing as convenience, because the buyer is the person who has to defend the record.",
+      "Step-up authentication inside the voice call, with the factor used written to the interaction record. Information security owns the decision, so lead with the evidence it has to defend.",
     residualHumanGate: undefined,
   },
   {
     id: "gate-model-risk-tiering",
-    name: "Model risk tiering and independent validation",
+    name: "Model risk validation",
     requirement:
       "Each autonomous action class is tiered, documented, and independently validated, with ongoing performance monitoring and a defined override path.",
     owner: "model-risk",
@@ -54,19 +54,19 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled on a quarterly validation committee cadence: one cycle to scope and document, one cycle to validate, with monitoring standing up in parallel. Range widens where the institution has no prior generative model in production.",
+          "Modeled on a quarterly validation committee cadence: one cycle to scope and document, one cycle to validate, with monitoring standing up in parallel. Range widens where the institution has no prior generative model in production.",
       },
     },
     unlockPath:
-      "Model risk validates the action classes rather than the model. Tiering by consumer financial consequence lets tier three informational handling ship in the first cycle while tier one money movement waits for the second, which is how an institution gets value before the committee finishes.",
+      "Model risk validates what the agent is allowed to do, one action type at a time. Informational answers can ship in the first committee cycle while money movement waits for the second, so value arrives before validation is complete.",
     commercialMotion:
-      "Action-class tiering with a per-action audit trail and a defined override path, so validation scopes to what the agent is permitted to do rather than to the model itself. This is the difference between a validation cycle that scopes and one that stalls.",
+      "Action-class tiering with a per-action audit trail and a defined override path, so validation covers what the agent may do, one action type at a time.",
     residualHumanGate:
       "Adverse or contested outcomes route to a human reviewer with the model's reasoning attached.",
   },
   {
     id: "gate-clock-instrumentation",
-    name: "Regulatory clock instrumentation",
+    name: "Regulatory deadline tracking",
     requirement:
       "Notice events spoken to the agent write to the system of record with a timestamp in the same transaction, and clock state is visible to the servicing team.",
     owner: "servicing-operations",
@@ -78,19 +78,19 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as an event write into the servicing platform plus reconciliation reporting. Lower bound assumes a modern API surface, upper bound assumes batch integration to a legacy core.",
+          "Modeled as an event write into the servicing platform plus reconciliation reporting. Lower bound assumes a modern API surface, upper bound assumes batch integration to a legacy core.",
       },
     },
     unlockPath:
-      "Servicing operations treats the agent as a notice-receiving channel with the same evidentiary standing as a branch. The clock starts when the customer speaks, not when a human reads the transcript, and the record must say so.",
+      "Servicing operations treats the agent as a channel that can receive a legal notice, with the same standing as a branch. The deadline starts when the customer speaks, and the record has to show that time.",
     commercialMotion:
-      "Notice-event capture that writes to the system of record in the same transaction as the utterance, with clock state surfaced to the servicing floor. Sold as evidentiary standing for the channel, not as automation.",
+      "Notice-event capture that writes to the system of record in the same transaction as the utterance, with clock state surfaced to the servicing floor.",
   },
   {
     id: "gate-output-constraint",
-    name: "Constrained output and UDAAP surveillance",
+    name: "Approved language and transcript monitoring",
     requirement:
-      "Agent language for regulated disclosures is drawn from approved content, free-form generation is bounded, and full-population transcript surveillance flags deceptive or abusive phrasing.",
+      "Regulated disclosures use approved language, free-form answers are bounded, and every transcript is monitored for misleading or abusive phrasing.",
     owner: "compliance",
     regulationIds: ["udaap", "finra-2210", "finra-3110"],
     phase: 2,
@@ -100,19 +100,19 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as approved-content library build plus surveillance rule tuning against a historical transcript corpus. Assumes surveillance tooling already exists for human agents and is being extended.",
+          "Modeled as approved-content library build plus surveillance rule tuning against historical transcripts. Assumes surveillance tooling already exists for human agents and is being extended.",
       },
     },
     unlockPath:
-      "Compliance moves from sampling to full-population review, which agentic volume makes both necessary and possible. Approved language covers the disclosure surface, generation covers everything else, and the boundary between them is auditable.",
+      "Compliance moves from sampling calls to reviewing every transcript. Approved language covers regulated disclosures, the agent answers everything else, and the line between the two is auditable.",
     commercialMotion:
-      "Approved-content routing on regulated disclosures with full-population transcript surveillance behind it. Agentic volume breaks sample-based review, which makes this a requirement the platform creates and then satisfies.",
+      "Approved-content routing on regulated disclosures with full-population transcript surveillance behind it. Sample-based review cannot keep up with AI call volume.",
     residualHumanGate:
       "Flagged interactions are queued for compliance review within the servicing day.",
   },
   {
     id: "gate-data-minimization",
-    name: "Session data minimization and provider boundary",
+    name: "Customer data limits for AI vendors",
     requirement:
       "Customer information sent beyond the institution boundary is minimized, tokenized where possible, and covered by third party oversight documentation.",
     owner: "information-security",
@@ -124,17 +124,17 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as a third party risk assessment cycle plus prompt-layer redaction implementation. Upper bound reflects institutions requiring a full vendor security review before any customer data crosses the boundary.",
+          "Modeled as a third party risk assessment cycle plus prompt-layer redaction implementation. Upper bound reflects institutions requiring a full vendor security review before any customer data crosses the boundary.",
       },
     },
     unlockPath:
-      "Information security approves the data boundary once, in writing, and the platform enforces it at the prompt layer. This is the first question asked and the last one answered, so it should be answered first.",
+      "Information security approves the data boundary once, in writing, and the platform enforces it before any data leaves the institution. Answer it in the first meeting.",
     commercialMotion:
-      "Prompt-layer redaction and a documented provider boundary, answered once in writing. It is the first question a chief information security officer asks and the last one most vendors answer, so answering it first is itself the differentiator.",
+      "Prompt-layer redaction and a documented provider boundary, answered once in writing. It is the first question a chief information security officer asks.",
   },
   {
     id: "gate-core-write-access",
-    name: "Transactional access to the system of record",
+    name: "Write access to the core system",
     requirement:
       "The agent can write account state changes to the core, servicing, or policy administration platform, not merely read from it.",
     owner: "core-platform",
@@ -146,21 +146,21 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled on core platform release cadence. Lower bound assumes a cloud-native or well-API'd core. Upper bound assumes a legacy core where transactional access is mediated by middleware and gated by the core vendor's own roadmap.",
+          "Modeled on core platform release cadence. Lower bound assumes a cloud-native or well-API'd core. Upper bound assumes a legacy core where transactional access is mediated by middleware and gated by the core vendor's own roadmap.",
         note:
-          "This is the single widest range in the corpus and the most common cause of an FSI pilot that demos well and never scales.",
+          "The widest range of any control, and the most common reason a pilot demos well and never scales.",
       },
     },
     unlockPath:
-      "The core platform team exposes the servicing transactions the agent needs. Where the core vendor controls that surface, the sequencing is set by the vendor's roadmap rather than the institution's, and the business case must be built around read-only resolution until it opens.",
+      "The core platform team exposes the servicing transactions the agent needs. Where the core vendor controls that access, its roadmap sets the date, so plan for read-only resolution until it opens.",
     commercialMotion:
-      "Orchestration across the core, the processor, and the servicing platform, so a resolution is one conversation rather than three systems. Where the core vendor controls the surface, the honest sale is read-only resolution now and transactional resolution on the vendor's cadence.",
+      "Orchestration across the core, the processor, and the servicing platform, so a resolution is one conversation rather than three systems. Where the core vendor controls the surface, the sale is read-only resolution now and transactional resolution on the vendor's cadence.",
   },
   {
     id: "gate-consent-architecture",
-    name: "Outbound consent and synthetic voice disclosure",
+    name: "Outbound consent and AI voice disclosure",
     requirement:
-      "Consent state is resolvable per contact per purpose before dialing, synthetic voice is disclosed, and opt-out is honoured across channels in the same session.",
+      "Consent state is resolvable per contact per purpose before dialing, synthetic voice is disclosed, and opt-out is honored across channels in the same session.",
     owner: "legal",
     regulationIds: ["tcpa", "reg-f", "recording-consent"],
     phase: 2,
@@ -170,19 +170,19 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as consent data model consolidation plus disclosure scripting and legal sign-off. Range reflects how fragmented consent state typically is across acquired portfolios.",
+          "Modeled as consent data model consolidation plus disclosure scripting and legal sign-off. Range reflects how fragmented consent state typically is across acquired portfolios.",
       },
     },
     unlockPath:
-      "Legal resolves consent to the contact and purpose level and the platform refuses to dial without it. Treating synthetic outbound as a robocall by default is the conservative posture and it is also the only posture that survives a class action.",
+      "Legal resolves consent for each contact and purpose, and the platform will not dial without it. Treat AI-voice outbound as a robocall by default. It is the conservative position and the one that holds up in litigation.",
     commercialMotion:
-      "Consent resolved to the contact and the purpose before dialing, with synthetic voice disclosure and cross-channel opt-out honoured in session. The platform refuses to dial without it, and that refusal is the product.",
+      "Consent checked for each contact and purpose before dialing, with AI voice disclosure and cross-channel opt-out honored in the same call. No consent, no call.",
     residualHumanGate:
-      "Right party contact on a delinquent mortgage account routes to assigned personnel rather than completing autonomously.",
+      "Calls that reach a delinquent borrower hand off to assigned staff.",
   },
   {
     id: "gate-fraud-disclosure-boundary",
-    name: "Fraud and suspicious activity disclosure boundary",
+    name: "Fraud and SAR disclosure limits",
     requirement:
       "The agent cannot disclose, confirm, or imply the existence of a suspicious activity filing, and restriction explanations are drawn from an approved non-disclosing script.",
     owner: "fraud-operations",
@@ -194,19 +194,19 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as script and refusal-path definition plus fraud operations sign-off. Short because the control is a prohibition rather than a build.",
+          "Modeled as script and refusal-path definition plus fraud operations sign-off. Short because the control is a prohibition rather than a build.",
       },
     },
     unlockPath:
-      "Fraud operations defines the non-disclosing explanation and the agent is barred from improvising around a restricted account. The most helpful answer here is the prohibited one, so helpfulness cannot be the optimisation target.",
+      "Fraud operations writes the approved explanation for a restricted account, and the agent cannot improvise beyond it. Here the most helpful answer is the prohibited one.",
     commercialMotion:
-      "Non-disclosing refusal paths enforced at the integration layer rather than in a prompt, because a prompt instruction is not a control. Sold to fraud operations as a boundary the agent cannot talk its way around.",
+      "Approved refusal paths enforced in the integration, not in a prompt. Fraud operations gets a boundary the agent cannot talk its way around.",
     residualHumanGate:
       "All restricted-account conversations transfer to fraud operations after the approved explanation.",
   },
   {
     id: "gate-state-sequencing",
-    name: "State-by-state insurance approval sequencing",
+    name: "State-by-state insurance approvals",
     requirement:
       "A written AI systems program exists, and deployment is sequenced by state with per-state claims handling timelines encoded in the agent.",
     owner: "compliance",
@@ -218,17 +218,17 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as AI governance program documentation plus phased state rollout, sequencing the largest written-premium states first. Range reflects variation in state adoption of the NAIC bulletin.",
+          "Modeled as AI governance program documentation plus phased state rollout, sequencing the largest written-premium states first. Range reflects variation in state adoption of the NAIC bulletin.",
       },
     },
     unlockPath:
-      "Compliance publishes the AI systems program once and then sequences states by written premium. Carriers that sequence by use case instead of by state rebuild the same approval three times.",
+      "Compliance publishes the AI systems program once and then sequences states by written premium. Carriers that sequence by use case instead of by state rebuild the same approval in every state.",
     commercialMotion:
-      "Per-state claims timelines encoded in the agent and deployment sequenced by written premium. Carriers that sequence by use case rebuild the same approval in every state, and showing them that is the shortest path to a first state.",
+      "Per-state claims timelines encoded in the agent and deployment sequenced by written premium. Carriers that sequence by use case rebuild the same approval in every state.",
   },
   {
     id: "gate-adverse-action-reasoning",
-    name: "Explainable adverse action reasoning",
+    name: "Adverse action reasons",
     requirement:
       "Any conversational path ending in a credit or coverage decision produces specific, accurate principal reasons traceable to the inputs used.",
     owner: "compliance",
@@ -240,13 +240,13 @@ export const CONTROL_GATES: ControlGate[] = [
       provenance: {
         class: "inferred",
         method:
-          "Modelled as reason code mapping plus validation of the explanation itself as a model output. Long because the explanation is separately examinable from the decision.",
+          "Modeled as reason code mapping plus validation of the explanation itself as a model output. Long because the explanation is separately examinable from the decision.",
       },
     },
     unlockPath:
-      "Compliance requires the reason before it permits the decision. In practice this keeps agents on the intake and triage side of credit workflows for longer than any vendor roadmap assumes, and the honest business case reflects that.",
+      "Compliance requires the reason before it permits the decision. Expect the agent to stay on intake and triage in credit workflows longer than most roadmaps assume, and build the case on that.",
     commercialMotion:
-      "Traceable reason codes attached to any conversational path approaching a credit or coverage decision. In practice this keeps the agent on intake and triage for longer than most roadmaps assume, and saying so is what makes the rest of the case believable.",
+      "Traceable reason codes attached to any conversational path approaching a credit or coverage decision. Expect the agent to stay on intake and triage longer than most roadmaps assume.",
     residualHumanGate:
       "Adverse decisions are issued by a human underwriter or servicing officer.",
   },

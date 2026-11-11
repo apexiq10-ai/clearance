@@ -48,7 +48,7 @@ test("the credit union sentence that caused this guard is rejected", () => {
 
   assert.ok(finding, "the guard did not catch the sentence it exists for");
   assert.equal(finding!.gateId, "gate-model-risk-tiering");
-  assert.equal(finding!.gateName, "Model risk tiering and independent validation");
+  assert.equal(finding!.gateName, "Model risk validation");
   assert.match(finding!.phrase, /not subject to/i);
   assert.equal(finding!.sentence, CREDIT_UNION_FIXTURE);
 });
@@ -124,7 +124,7 @@ test("the guard finds the offending sentence inside a longer paragraph", () => {
   const paragraph =
     "The credit union runs Symitar Episys and already evidences step-up authentication. " +
     CREDIT_UNION_FIXTURE +
-    " Deposit servicing is the place to fund the programme.";
+    " Deposit servicing is the place to fund the program.";
   const finding = detectExemptionContradiction(
     paragraph,
     sequenceGateIdsFor("credit-union")

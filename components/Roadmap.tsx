@@ -53,8 +53,8 @@ export function Roadmap({
               provenance={{
                 class: "inferred",
                 method:
-                  `The ledger recomputed with ${institution.name.toLowerCase()} evidencing this step's controls ` +
-                  `and every control before it, less the cleared total at the end of the previous step.`,
+                  "Cleared value recomputed as if this step's approvals and every earlier one were in place, " +
+                  "minus the cleared value after the previous step.",
               }}
               className="display text-[32px] font-semibold text-accent"
             >
@@ -168,7 +168,7 @@ function StepChart({ phases, clearedToday }: { phases: Phase[]; clearedToday: nu
             <svg width="14" height="4" aria-hidden="true">
               <line x1="0" y1="2" x2="14" y2="2" stroke="var(--accent)" strokeWidth="2" strokeDasharray="3 2" />
             </svg>
-            Fastest
+            Best case
           </span>
         </div>
       </div>
@@ -201,7 +201,7 @@ function StepChart({ phases, clearedToday }: { phases: Phase[]; clearedToday: nu
           <g key={w}>
             <line x1={x(w)} x2={x(w)} y1={padT - 10} y2={H - padB} stroke="var(--separator)" strokeWidth="1" />
             <text x={x(w)} y={H - 10} textAnchor={w === 0 ? "start" : "middle"} fontSize="13" fill="var(--tertiary)">
-              {w === 0 ? "Today" : `${w} wks`}
+              {w === 0 ? "Today" : `Wk ${w}`}
             </text>
           </g>
         ))}

@@ -251,20 +251,20 @@ export function sequenceOpeningLine(phases: Phase[]): string {
 
 export function sequenceClosingLine(phases: Phase[]): string {
   if (phases.length === 0) {
-    return "No control is holding value here. Every workload is already at its ceiling.";
+    return "Nothing is waiting on approval. Every workload is at full potential.";
   }
 
   const gateCount = phases.reduce((n, p) => n + p.gates.length, 0);
   const last = phases[phases.length - 1]!;
-
-  const controls = `${spellCount(gateCount)} control${gateCount === 1 ? "" : "s"}`;
-  const phaseWord = `${spellCount(phases.length)} step${phases.length === 1 ? "" : "s"}`;
   const weeks =
     last.weeksLow === last.weeksHigh
       ? `${last.weeksHigh} weeks`
       : `${last.weeksLow} to ${last.weeksHigh} weeks`;
 
-  return capitalise(`${controls}, ${phaseWord}, ${weeks} to full release.`);
+  return (
+    `${gateCount} approval${gateCount === 1 ? "" : "s"}, ` +
+    `${phases.length} step${phases.length === 1 ? "" : "s"}, ${weeks} to full value.`
+  );
 }
 
 function capitalise(s: string): string {
@@ -316,5 +316,5 @@ export function closingAsk(blockingGateIds: string[]): string | undefined {
   if (gates.length === 0) return undefined;
 
   const latest = gates.reduce((a, b) => (b.phase > a.phase ? b : a));
-  return `Ask ${OWNER_ROLE[latest.owner]} who owns ${latest.name.toLowerCase()} and ${OWNER_QUESTION[latest.owner]}.`;
+  return `Ask ${OWNER_ROLE[latest.owner]} ${OWNER_QUESTION[latest.owner]}.`;
 }

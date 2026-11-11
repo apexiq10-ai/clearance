@@ -96,12 +96,12 @@ const FIELDS: FieldSpec[] = [
   },
   {
     key: "repeatPenalty",
-    label: "Repeat contact penalty",
-    step: 0.01,
-    read: (e) => e.repeatContactPenalty.value,
+    label: "Repeat contact rate (%)",
+    step: 1,
+    read: (e) => Math.round(e.repeatContactPenalty.value * 1000) / 10,
     write: (e, v) => ({
       ...e,
-      repeatContactPenalty: { ...e.repeatContactPenalty, value: v },
+      repeatContactPenalty: { ...e.repeatContactPenalty, value: Math.min(v, 100) / 100 },
     }),
   },
 ];
@@ -181,7 +181,7 @@ export function AssumptionsPanel({
       </ul>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-separator px-6 py-4">
         <p className="text-[13px] text-secondary">
-          Each AI-handled call saves{" "}
+          Each AI-handled voice call saves{" "}
           <span className="tnum font-semibold text-label">${perContact.toFixed(2)}</span>
         </p>
         <button

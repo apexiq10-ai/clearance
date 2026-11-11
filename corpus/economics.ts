@@ -71,7 +71,7 @@ export const ECONOMICS: EconomicsConstants = {
     value: 0.82,
     provenance: {
       class: "assumption",
-      note: "Typical target occupancy in a well-run financial services centre.",
+      note: "Typical target occupancy in a well-run financial services center.",
     },
   },
   shrinkageRate: {

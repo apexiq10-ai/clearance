@@ -148,7 +148,7 @@ function WorkloadRow({
         </div>
         <div className="hidden pt-0.5 text-right md:block">
           {row.gateIds.length === 0 ? (
-            <span className="text-[15px] font-medium text-positive">Cleared</span>
+            <span className="text-[15px] font-medium text-positive">Fully cleared</span>
           ) : (
             <Numeral
               provenance={lockedValueProvenance(workload, economics, row)}
