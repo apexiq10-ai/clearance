@@ -5,7 +5,14 @@ import { CONTROL_GATES } from "../../../corpus/controls";
 import { INSTITUTIONS, INSTITUTIONS_BY_ID } from "../../../corpus/institutions";
 import { WORKLOADS, WORKLOADS_BY_ID } from "../../../corpus/workloads";
 import type { InstitutionArchetype, SegmentId } from "../../../corpus/types";
-import { blockingGatesFor } from "../../../lib/defaults";
+import { blockingGatesFor, corpusDefaultLedger } from "../../../lib/defaults";
+import {
+  SAMPLE_CLASSIFICATION,
+  SAMPLE_DRIVERS,
+  SAMPLE_REASONING,
+  SAMPLE_TRACE,
+  isSampleFiling,
+} from "../../../lib/prebuilt";
 import {
   ledgerResponseSchema,
   pruneExtractedDrivers,
@@ -202,6 +209,19 @@ function buildUserMessage(
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  const body = (await request.json().catch(() => ({}))) as {
+    institutionId?: SegmentId | null;
+    filing?: string;
+  };
+
+  const filing = (body.filing ?? "").trim();
+  const chosen = body.institutionId ? INSTITUTIONS_BY_ID[body.institutionId] : undefined;
+
+  // The sample filing is prebuilt, so it costs nothing and skips the limit.
+  if (isSampleFiling(filing) && (!chosen || chosen.id === "credit-union")) {
+    return samplePayloadStream(!chosen);
+  }
+
   // Shared budget, shared limit. The client renders this the same way it
   // renders a timeout, and falls back to the corpus ledger underneath it.
   const verdict = rateLimit(clientIp(request));
@@ -211,14 +231,6 @@ export async function POST(request: NextRequest) {
       { status: 429, headers: { ...sseHeaders(), ...rateLimitHeaders(verdict) } }
     );
   }
-
-  const body = (await request.json().catch(() => ({}))) as {
-    institutionId?: SegmentId | null;
-    filing?: string;
-  };
-
-  const filing = (body.filing ?? "").trim();
-  const chosen = body.institutionId ? INSTITUTIONS_BY_ID[body.institutionId] : undefined;
   const needsClassification = !chosen && filing.length > 0;
 
   if (!chosen && !needsClassification) {
@@ -314,6 +326,53 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  return new Response(stream, { headers: sseHeaders() });
+}
+
+/**
+ * The sample filing's analysis, replayed line by line at a reading pace, then
+ * the result. Percentages come from the corpus defaults for the credit union,
+ * the same base the model starts from, so the figures cannot drift.
+ */
+function samplePayloadStream(classified: boolean): Response {
+  const institution = INSTITUTIONS_BY_ID["credit-union"]!;
+  const rows = corpusDefaultLedger(institution).ledger.rows.map((row) => ({
+    workloadId: row.workloadId,
+    permittedPct: row.permittedPct,
+    ceilingPct: row.ceilingPct,
+    gateIds: row.gateIds,
+    reasoning: SAMPLE_REASONING[row.workloadId] ?? WORKLOADS_BY_ID[row.workloadId]!.operatorNote,
+  }));
+  const payload: LedgerPayload = {
+    segmentId: institution.id,
+    classificationNote: classified ? SAMPLE_CLASSIFICATION : undefined,
+    driverOverrides: SAMPLE_DRIVERS,
+    rows,
+  };
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      const send = (event: Parameters<typeof encodeEvent>[0]) => {
+        try {
+          controller.enqueue(encoder.encode(encodeEvent(event)));
+        } catch {
+          // The client hung up.
+        }
+      };
+      for (const line of SAMPLE_TRACE) {
+        await new Promise((r) => setTimeout(r, 220));
+        send({ kind: "trace", label: line.label, value: line.value });
+      }
+      await new Promise((r) => setTimeout(r, 400));
+      send({ kind: "result", payload });
+      try {
+        controller.close();
+      } catch {
+        // Already closed.
+      }
+    },
+  });
   return new Response(stream, { headers: sseHeaders() });
 }
 

@@ -27,6 +27,7 @@ import {
   RATE_LIMIT_MESSAGE,
 } from "../../../lib/ratelimit";
 import { roundToNearestThousand } from "../../../lib/compute";
+import { PREBUILT_BRIEFS } from "../../../lib/prebuilt";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -83,14 +84,6 @@ Write dollar figures as digits. Say step, never phase. Never use an em-dash.
 Return only JSON with the single key position. No markdown, no preamble.`;
 
 export async function POST(request: NextRequest) {
-  const verdict = rateLimit(clientIp(request));
-  if (!verdict.allowed) {
-    return new Response(
-      encodeEvent({ kind: "error", message: RATE_LIMIT_MESSAGE }),
-      { status: 429, headers: { ...sseHeaders(), ...rateLimitHeaders(verdict) } }
-    );
-  }
-
   const body = (await request.json().catch(() => ({}))) as {
     institutionId?: SegmentId;
   };
@@ -108,6 +101,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // The archetype briefs are prebuilt and validated (lib/prebuilt.ts), so they
+  // cost nothing and are served before the rate limit.
+  const prebuilt = PREBUILT_BRIEFS[institution.id];
+  if (!prebuilt) {
+    const verdict = rateLimit(clientIp(request));
+    if (!verdict.allowed) {
+      return new Response(
+        encodeEvent({ kind: "error", message: RATE_LIMIT_MESSAGE }),
+        { status: 429, headers: { ...sseHeaders(), ...rateLimitHeaders(verdict) } }
+      );
+    }
+  }
+
   const computed = corpusDefaultLedger(institution);
   const ledger = computed.ledger;
   const phases = buildSequence(institution, computed);
@@ -123,6 +129,13 @@ export async function POST(request: NextRequest) {
     reference: referenceMark(institution, ledger),
     preparedAt: new Date().toISOString().slice(0, 10),
   };
+
+  if (prebuilt) {
+    return new Response(
+      encodeEvent({ kind: "result", payload: { deterministic, brief: prebuilt, note: null } }),
+      { headers: sseHeaders() }
+    );
+  }
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return new Response(

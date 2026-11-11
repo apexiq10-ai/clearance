@@ -45,3 +45,7 @@ Headline: **What's possible. What's permitted.**
 - Colour: neutral greys on `#f5f5f7` / `#000`, with indigo as the only accent. Light and dark follow the system setting.
 - Shape: 20px card radius, 12px control radius, capsule bars and pills.
 - Depth: hairline separators, with soft shadow only on floating surfaces (sheets, popovers, the top bar).
+
+## Model output
+
+The account brief and the stress test for the four institutions, and the analysis of the sample filing, are prebuilt in `lib/prebuilt.ts` and served instantly by the same routes, with no model call and no rate limit. `lib/prebuilt.test.ts` holds that content to every check the routes apply to live model output. The model is still called for anything custom: a pasted filing, or a stress test after figures change. To review what each section was written from, run `npx tsx scripts/dump-inputs.ts`.

@@ -7,6 +7,7 @@ import { corpusDefaultLedger, lockedGateIds } from "../lib/defaults";
 import { SEGMENT_SHORT, SEGMENT_TAGLINE, assetsLabel, compactUsd } from "../lib/present";
 import { ArrowRight, DocIcon, SegmentIcon } from "./Icons";
 import { Sheet } from "./Sheet";
+import { SAMPLE_FILING } from "../lib/prebuilt";
 
 /**
  * Home. One headline, four institutions that already show their own numbers,
@@ -146,14 +147,6 @@ export function Home({
     </main>
   );
 }
-
-/** A fictional excerpt, so anyone can see the filing path without a filing to hand. */
-const SAMPLE_FILING =
-  "Harbor & Pine Credit Union (a fictional institution) is a state-chartered, federally insured credit union " +
-  "serving 212,000 members through 14 branches. Total assets were $2.8 billion at December 31. Core processing " +
-  "runs on Jack Henry Symitar, and member contact is handled by a cloud contact center with 96 member service " +
-  "representatives. Indirect auto loans represent 38 percent of the loan portfolio. The credit union is " +
-  "supervised by the NCUA and the state Department of Financial Institutions.";
 
 function FilingSheet({
   open,

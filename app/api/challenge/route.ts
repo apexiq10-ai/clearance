@@ -12,6 +12,7 @@ import {
   type Challenge,
 } from "../../../lib/schema";
 import { parseFirstJsonObject } from "../../../lib/json";
+import { PREBUILT_CHALLENGES } from "../../../lib/prebuilt";
 import {
   clientIp,
   rateLimit,
@@ -41,14 +42,6 @@ Never use an em-dash.
 Return only JSON.`;
 
 export async function POST(request: NextRequest) {
-  const verdict = rateLimit(clientIp(request));
-  if (!verdict.allowed) {
-    return Response.json(
-      { challenges: [], note: RATE_LIMIT_MESSAGE },
-      { status: 429, headers: rateLimitHeaders(verdict) }
-    );
-  }
-
   const body = (await request.json().catch(() => ({}))) as {
     institutionId?: SegmentId;
     rows?: Array<{ workloadId: string; permittedPct: number; ceilingPct: number }>;
@@ -75,6 +68,36 @@ export async function POST(request: NextRequest) {
           permittedPct: r.permittedPct,
           ceilingPct: r.ceilingPct,
         }));
+
+  // The archetype challenges are prebuilt against corpus default figures. They
+  // are served when the figures on screen are those defaults, and still pass
+  // through the same pruning as live output.
+  const prebuilt = PREBUILT_CHALLENGES[institution.id];
+  const defaults = corpusDefaultLedger(institution).ledger.rows;
+  const onDefaults =
+    onScreen.length === defaults.length &&
+    onScreen.every((row) => {
+      const d = defaults.find((x) => x.workloadId === row.workloadId);
+      return d !== undefined && Math.abs(d.permittedPct - row.permittedPct) < 0.005;
+    });
+
+  if (prebuilt && onDefaults) {
+    const { kept } = pruneChallenges(
+      prebuilt,
+      onScreen,
+      (workloadId) => WORKLOADS_BY_ID[workloadId]?.gateIds,
+      (gateId) => GATE_IDS.has(gateId)
+    );
+    return Response.json({ challenges: kept, note: null });
+  }
+
+  const verdict = rateLimit(clientIp(request));
+  if (!verdict.allowed) {
+    return Response.json(
+      { challenges: [], note: RATE_LIMIT_MESSAGE },
+      { status: 429, headers: rateLimitHeaders(verdict) }
+    );
+  }
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({
