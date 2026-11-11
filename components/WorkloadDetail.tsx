@@ -15,7 +15,7 @@ import { resolveRef } from "../corpus/index";
 import { REGULATIONS } from "../corpus/regulations";
 import { WORKLOADS_BY_ID } from "../corpus/workloads";
 import { closingAsk } from "../lib/sequence";
-import { OWNER_LABEL, compactUsd, weeksRange } from "../lib/present";
+import { OWNER_LABEL, RISK_LABEL, compactUsd, weeksRange } from "../lib/present";
 import {
   lockedValueProvenance,
   permittedValueProvenance,
@@ -24,7 +24,6 @@ import {
 import { useMounted } from "../lib/motion";
 import { CheckIcon, LockIcon, SparkIcon } from "./Icons";
 import { Numeral } from "./Provenance";
-import { RiskPill } from "./Workloads";
 
 const VERDICT: Record<RailVerdict, { label: string; color: string }> = {
   permit: { label: "Allowed", color: "var(--positive)" },
@@ -65,7 +64,7 @@ export function WorkloadDetail({
 
   return (
     <article className="px-6 pb-12 pt-0 sm:px-10">
-      <RiskPill tier={workload.riskTier} />
+      <p className="text-[13px] font-medium text-secondary">{RISK_LABEL[workload.riskTier]}</p>
       <h2 className="display mt-3 text-[30px] font-semibold text-label sm:text-[34px]">
         {workload.name}
       </h2>

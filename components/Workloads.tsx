@@ -95,31 +95,27 @@ function WorkloadRow({
         } ${first ? "rounded-t-[22px] md:rounded-t-none" : ""}`}
       >
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpen();
-              }}
-              className="text-left text-[17px] font-semibold leading-snug tracking-[-0.02em] text-label"
-            >
-              {workload.name}
-            </button>
-            <RiskPill tier={workload.riskTier} />
-          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen();
+            }}
+            className="text-left text-[17px] font-semibold leading-snug tracking-[-0.02em] text-label"
+          >
+            {workload.name}
+          </button>
           <p className="mt-1 text-[15px] leading-snug text-secondary">
             &ldquo;{workload.plainLanguageSummary}&rdquo;
           </p>
-          <div className="mt-3.5 flex items-center gap-3">
-            <div className="bar h-[5px] flex-1">
-              <span className="bar-cleared" style={{ width: `${permittedW}%` }} />
-              <span className="bar-waiting" style={{ width: `${waitingW}%` }} />
-            </div>
-            <span className="tnum shrink-0 text-[12px] text-tertiary">
-              {Math.round(row.permittedPct * 100)}% now · {Math.round(row.ceilingPct * 100)}% possible
-            </span>
+          <div className="bar mt-3.5 h-[5px]">
+            <span className="bar-cleared" style={{ width: `${permittedW}%` }} />
+            <span className="bar-waiting" style={{ width: `${waitingW}%` }} />
           </div>
+          <p className="tnum mt-2 text-[12px] text-tertiary">
+            {RISK_LABEL[workload.riskTier]} · {Math.round(row.permittedPct * 100)}% automatable now ·{" "}
+            {Math.round(row.ceilingPct * 100)}% possible
+          </p>
 
           {/* Figures inline on a phone. */}
           <div className="mt-3 flex gap-5 text-[14px] md:hidden">
@@ -178,19 +174,5 @@ function WorkloadRow({
         ) : null}
       </div>
     </li>
-  );
-}
-
-export function RiskPill({ tier }: { tier: keyof typeof RISK_LABEL }) {
-  const tone =
-    tier === "tier-1"
-      ? "text-critical bg-critical-wash"
-      : tier === "tier-2"
-        ? "text-caution bg-[color-mix(in_srgb,var(--caution)_10%,transparent)]"
-        : "text-positive bg-[color-mix(in_srgb,var(--positive)_10%,transparent)]";
-  return (
-    <span className={`inline-flex h-[22px] items-center rounded-full px-2 text-[12px] font-medium ${tone}`}>
-      {RISK_LABEL[tier]}
-    </span>
   );
 }
